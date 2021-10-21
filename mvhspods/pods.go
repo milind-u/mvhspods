@@ -10,7 +10,7 @@ import (
   "github.com/milind-u/mlog"
 )
 
-type percents map[string]float32
+type percents map[field]float32
 
 type PodManager struct {
   students []student

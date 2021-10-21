@@ -5,11 +5,16 @@ var weightedFields = [...]int{1, 4, 7, 8}
 
 type student []string
 
-func (s student) weightedFields() chan string {
-  c := make(chan string, len(weightedFields))
+type field struct {
+  index int
+  string
+}
+
+func (s student) weightedFields() chan field {
+  c := make(chan field, len(weightedFields))
   for _, index := range weightedFields {
     if s[index] != "" {
-      c <- s[index]
+      c <- field{index, s[index]}
     }
   }
   return c
