@@ -18,8 +18,7 @@ func (s student) weightedFields() chan string {
 func (s student) weight(population percents, pod percents) float32 {
   var weight float32
   for field := range s.weightedFields() {
-      weight += population[field] - pod[field]
+    weight += population[field] - pod[field]
   }
   return weight
 }
-

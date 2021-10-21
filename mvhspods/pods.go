@@ -5,6 +5,7 @@ import (
   "encoding/csv"
   "io"
   "os"
+  "unsafe"
 
   "github.com/milind-u/mlog"
 )
@@ -13,7 +14,6 @@ type percents map[string]float32
 
 type PodManager struct {
   students []student
-  pods [][]student
 }
 
 func (pm *PodManager) ReadStudents(path string) {
@@ -34,7 +34,6 @@ func (pm *PodManager) ReadStudents(path string) {
 }
 
 func (pm *PodManager) MakePods() {
-  mlog.CheckEq(pm.pods, nil, "Already made pods")
 
 }
 
@@ -49,5 +48,10 @@ func (pm *PodManager) percentsOf(students []student) percents {
 }
 
 func (pm *PodManager) WritePods(path string) {
+  f, err := os.Open(path)
+  mlog.FatalIf(err)
 
+  w := csv.NewWriter(f)
+  err = w.WriteAll(*(*[][]string)(unsafe.Pointer(&pm.students)))
+  mlog.FatalIf(err)
 }
