@@ -1,10 +1,16 @@
 package main
 
-import "mvhspods"
+import (
+  "mvhspods"
+
+  "github.com/milind-u/mlog"
+)
 
 func main() {
+  mlog.SetLevel(mlog.LInfo)
+
   var pm mvhspods.PodManager
   pm.ReadStudents("students.csv")
   pm.MakePods()
-  pm.WritePods("pod_groups.csv")
+  pm.WritePods("pods.csv")
 }
