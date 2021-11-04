@@ -4,8 +4,11 @@ import (
 	"bufio"
 	"encoding/csv"
 	"io"
+	"math"
 	"os"
+	"sort"
 	"strconv"
+	"strings"
 	"unsafe"
 
 	"github.com/milind-u/mlog"
@@ -14,12 +17,12 @@ import (
 // If true, trim the last column which has sample pod numbers
 const testData = true
 
-const studentsPerPod = 5
+const studentsPerPod = 6
 
 type percents map[field]float32
 
 type PodManager struct {
-	students []student
+	students
 	headers []string
 }
 
@@ -41,36 +44,50 @@ func (pm *PodManager) ReadStudents(path string) {
 			if testData {
 				s = s[:len(s) - 1]
 			}
+			// TODO: keep the whitespace and ELD level in the output
+			// Remove whitespace from fields
+			for field := range s.weightedFields() {
+				s[field.index] = strings.ReplaceAll(s[field.index], " ", "")
+			}
+			// Trim the ELD group number to make all ELD levels the same group
+			// TODO: put all ELD students in same pod
+			if grouMemberships := s[groupMembershipsIndex]; strings.Contains(grouMemberships, "ELD") {
+				s[groupMembershipsIndex] = grouMemberships[:len(grouMemberships) - 1]
+			}
 			pm.students = append(pm.students, s)
 		}
 	}
+
+	mlog.Infoln(pm.students)
 }
 
 func (pm *PodManager) MakePods() {
 	population := pm.percentsOf(pm.students)
 	numPods := len(pm.students) / studentsPerPod
-	var addedStudents []student
-	pods := make([][]student, numPods, studentsPerPod)
+	var addedStudents students
+	pods := make([]students, numPods, studentsPerPod)
 
 	for i := 0; i < numPods; i++ {
 		// create student array for current pod
 		for j := 0; j < studentsPerPod; j++ {
 			// calculate percents of current pod
 			podPercents := pm.percentsOf(pods[i])
-			var maxWeight float32
+			maxWeight := float32(math.Inf(-1))
 			var maxStudent student
 			maxIndex := 0
 			for k, student := range pm.students {
 				if weight := student.weight(population, podPercents); weight > maxWeight {
-					maxWeight = weight
 					maxStudent = student
 					maxIndex = k
+					mlog.CheckGt(float64(len(maxStudent)), 0, "Student is empty 1")
 				}
+				mlog.CheckGt(float64(len(maxStudent)), 0, "Student is empty 2", len(pm.students))
 			}
 
 			pm.addToPod(maxStudent, maxIndex, i, &pods[i], &addedStudents)
 		}
 
+		sort.Sort(pm.students)
 	}
 
 	// Cannot fit all students in pods of studentsPerPod
@@ -91,6 +108,8 @@ func (pm *PodManager) MakePods() {
 
 	pm.students = addedStudents
 
+	// TODO: Refactor so that there are the min number of students in each pod,
+	// and before adding a student to pod make sure no others have higher weight in that pod
 	for i, pod := range pods {
 		mlog.Infoln("Pod", i)
 		for _, s := range pod {
@@ -98,9 +117,10 @@ func (pm *PodManager) MakePods() {
 		}
 		mlog.Infoln()
 	}
+
 }
 
-func (pm *PodManager) percentsOf(students []student) percents {
+func (pm *PodManager) percentsOf(students students) percents {
 	percents := make(percents)
 	for _, s := range students {
 		for field := range s.weightedFields() {
@@ -110,7 +130,8 @@ func (pm *PodManager) percentsOf(students []student) percents {
 	return percents
 }
 
-func (pm *PodManager) addToPod(s student, index int, podIndex int, pod *[]student, addedStudents *[]student) {
+func (pm *PodManager) addToPod(s student, index int, podIndex int, pod *students, addedStudents *students) {
+	mlog.CheckGt(float64(len(s)), 0, index)
 	s = append(s, strconv.Itoa(podIndex + 1))
 	*pod = append(*pod, s)
 

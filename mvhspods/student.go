@@ -1,9 +1,17 @@
 package mvhspods
 
+import "strings"
+
 // Indices of the student fields that are weighted
 var weightedFields = [...]int{1, 4, 7, 8}
+const groupMembershipsIndex = 8
+const lastNameIndex = 2
+const firstNameIndex = 3
+const idIndex = 0
 
 type student []string
+
+type students []student
 
 type field struct {
 	index int
@@ -27,4 +35,23 @@ func (s student) weight(population percents, pod percents) float32 {
 		weight += population[field] - pod[field]
 	}
 	return weight
+}
+
+func (s students) Len() int {
+	return len(s)
+}
+
+func (s students) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s students) Less(i, j int) bool {
+	diff := strings.Compare(s[i][lastNameIndex], s[j][lastNameIndex])
+	if diff == 0 {
+		diff = strings.Compare(s[i][firstNameIndex], s[j][firstNameIndex])
+		if diff == 0 {
+			diff = strings.Compare(s[i][idIndex], s[j][idIndex])
+		}
+	}
+	return diff < 0
 }
