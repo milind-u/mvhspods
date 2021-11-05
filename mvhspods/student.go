@@ -6,6 +6,7 @@ import (
 
 // Indices of the student fields that are weighted
 var weightedFields = [...]int{1, 4, 7, 8}
+
 const groupMembershipsIndex = 8
 const lastNameIndex = 2
 const firstNameIndex = 3
