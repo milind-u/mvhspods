@@ -87,7 +87,6 @@ func (pm *PodManager) MakePods() {
 			pm.addToPod(maxStudent, maxIndex, i, &pods[i], &addedStudents)
 		}
 
-		sort.Sort(pm.students)
 	}
 
 	// Cannot fit all students in pods of studentsPerPod
@@ -107,6 +106,8 @@ func (pm *PodManager) MakePods() {
 	}
 
 	pm.students = addedStudents
+
+	sort.Sort(pm.students)
 
 	// TODO: Refactor so that there are the min number of students in each pod,
 	// and before adding a student to pod make sure no others have higher weight in that pod

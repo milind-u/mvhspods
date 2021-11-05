@@ -1,6 +1,8 @@
 package mvhspods
 
-import "strings"
+import (
+	"strings"
+)
 
 // Indices of the student fields that are weighted
 var weightedFields = [...]int{1, 4, 7, 8}
