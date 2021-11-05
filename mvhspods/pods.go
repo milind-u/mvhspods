@@ -19,6 +19,8 @@ const testData = true
 
 const studentsPerPod = 6
 
+const eldPod = 0
+
 type percents map[field]float32
 
 type PodManager struct {
@@ -67,7 +69,14 @@ func (pm *PodManager) MakePods() {
 	var addedStudents students
 	pods := make([]students, numPods, studentsPerPod)
 
-	for i := 0; i < numPods; i++ {
+	for i, student := range pm.students {
+		if groupMemberships := student[groupMembershipsIndex];
+			strings.Contains(groupMemberships, "ELD"){
+			pm.addToPod(student, i, eldPod, &pods[eldPod], &addedStudents)
+		}
+	}
+
+	for i := eldPod+1; i < numPods; i++ {
 		// create student array for current pod
 		for j := 0; j < studentsPerPod; j++ {
 			// calculate percents of current pod
