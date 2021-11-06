@@ -11,7 +11,7 @@ import (
   "strings"
   "unsafe"
 
-  "github.com/milind-u/mlog"
+  "github.com/milind-u/glog"
 )
 
 const studentsPerPod = 5
@@ -29,12 +29,12 @@ type PodManager struct {
 
 func (pm *PodManager) ReadStudents(path string, sampleData bool) {
   f, err := os.Open(path)
-  mlog.FatalIf(err)
+  glog.FatalIf(err)
   bufReader := bufio.NewReader(f)
   r := csv.NewReader(bufReader)
 
   pm.headers, err = r.Read()
-  mlog.FatalIf(err)
+  glog.FatalIf(err)
 
   for err != io.EOF {
     fields, readErr := r.Read()
@@ -88,9 +88,9 @@ func (pm *PodManager) MakePods(sorted bool) {
         if weight := student.weight(population, podPercents[i]); weight > maxWeight {
           maxStudent = student
           maxIndex = k
-          mlog.CheckGt(float64(len(maxStudent)), 0, "Student is empty 1")
+          glog.CheckGt(float64(len(maxStudent)), 0, "Student is empty 1")
         }
-        mlog.CheckGt(float64(len(maxStudent)), 0, "Student is empty 2", len(pm.Students))
+        glog.CheckGt(float64(len(maxStudent)), 0, "Student is empty 2", len(pm.Students))
       }
 
       addPercents(maxStudent, pods[i], podPercents[i])
@@ -125,11 +125,11 @@ func (pm *PodManager) MakePods(sorted bool) {
   }
 
   for i, pod := range pods {
-    mlog.Infoln("Pod", i)
+    glog.Infoln("Pod", i)
     for _, s := range pod {
-      mlog.Infoln(s)
+      glog.Infoln(s)
     }
-    mlog.Infoln()
+    glog.Infoln()
   }
 
 }
@@ -149,7 +149,7 @@ func addPercents(s Student, students Students, percents Percents) {
 }
 
 func (pm *PodManager) addToPod(s Student, index int, podIndex int, pod *Students, addedStudents *Students) {
-  mlog.CheckGt(float64(len(s)), 0, index)
+  glog.CheckGt(float64(len(s)), 0, index)
   s = append(s, strconv.Itoa(podIndex+1))
   *pod = append(*pod, s)
 
@@ -165,10 +165,10 @@ func (pm *PodManager) WritePods(path string) {
 
 func WriteStudents(path string, headers []string, students Students) {
   f, err := os.Create(path)
-  mlog.FatalIf(err)
+  glog.FatalIf(err)
 
   w := csv.NewWriter(f)
-  mlog.FatalIf(w.Write(headers))
+  glog.FatalIf(w.Write(headers))
   err = w.WriteAll(*(*[][]string)(unsafe.Pointer(&students)))
-  mlog.FatalIf(err)
+  glog.FatalIf(err)
 }

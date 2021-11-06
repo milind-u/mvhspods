@@ -4,7 +4,7 @@ import (
   "fmt"
   "strings"
 
-  "github.com/milind-u/mlog"
+  "github.com/milind-u/glog"
 )
 
 // Indices of the student fields that are weighted
@@ -47,7 +47,7 @@ func (s Students) String() string {
   b := new(strings.Builder)
   for _, student := range s {
     _, err := fmt.Fprintln(b, student)
-    mlog.WarningIf(err)
+    glog.WarningIf(err)
   }
   return b.String()
 }
