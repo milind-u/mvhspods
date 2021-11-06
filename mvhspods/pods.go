@@ -14,21 +14,20 @@ import (
   "github.com/milind-u/mlog"
 )
 
-// If true, trim the last column which has sample pod numbers
-const testData = true
-
 const studentsPerPod = 5
 
 const eldPod = 0
 
-type percents map[field]float32
+type Percent float32
+
+type Percents map[field]Percent
 
 type PodManager struct {
-  students
+  Students
   headers []string
 }
 
-func (pm *PodManager) ReadStudents(path string) {
+func (pm *PodManager) ReadStudents(path string, sampleData bool) {
   f, err := os.Open(path)
   mlog.FatalIf(err)
   bufReader := bufio.NewReader(f)
@@ -41,9 +40,9 @@ func (pm *PodManager) ReadStudents(path string) {
     fields, readErr := r.Read()
     err = readErr
     if err == nil {
-      s := student(fields)
+      s := Student(fields)
       // Trim the sample pod number if this is test data
-      if testData {
+      if sampleData {
         s = s[:len(s)-1]
       }
       // TODO: keep the whitespace and ELD level in the output
@@ -55,48 +54,46 @@ func (pm *PodManager) ReadStudents(path string) {
       if groupMemberships := s[groupMembershipsIndex]; strings.Contains(groupMemberships, "ELD") {
         s[groupMembershipsIndex] = groupMemberships[:len(groupMemberships)-1]
       }
-      pm.students = append(pm.students, s)
+      pm.Students = append(pm.Students, s)
     }
   }
-
-  mlog.Infoln(pm.students)
 }
 
 func (pm *PodManager) MakePods(sorted bool) {
-  minWeight := float32(math.Inf(-1))
+  minWeight := Percent(math.Inf(-1))
 
-  var addedStudents students
-  numPods := len(pm.students) / studentsPerPod
+  var addedStudents Students
+  numPods := len(pm.Students) / studentsPerPod
 
-  pods := make([]students, numPods, studentsPerPod)
+  pods := make([]Students, numPods, studentsPerPod)
   eldStudents := 0
-  for i, student := range pm.students {
+  for i, student := range pm.Students {
     if groupMemberships := student[groupMembershipsIndex]; strings.Contains(groupMemberships, "ELD") {
       pm.addToPod(student, i, eldPod, &pods[eldPod], &addedStudents)
       eldStudents++
     }
   }
 
-  population := pm.percentsOf(pm.students)
-  podPercents := make([]percents, numPods, studentsPerPod)
+  population := PercentsOf(pm.Students)
+  podPercents := make([]Percents, numPods, studentsPerPod)
 
   for i := eldPod + 1; i < numPods; i++ {
-    podPercents[i] = make(percents)
+    podPercents[i] = make(Percents)
     for j := 0; j < studentsPerPod; j++ {
       // calculate percents of current pod
       maxWeight := minWeight
-      var maxStudent student
+      var maxStudent Student
       maxIndex := 0
-      for k, student := range pm.students {
+      for k, student := range pm.Students {
         if weight := student.weight(population, podPercents[i]); weight > maxWeight {
           maxStudent = student
           maxIndex = k
           mlog.CheckGt(float64(len(maxStudent)), 0, "Student is empty 1")
         }
-        mlog.CheckGt(float64(len(maxStudent)), 0, "Student is empty 2", len(pm.students))
+        mlog.CheckGt(float64(len(maxStudent)), 0, "Student is empty 2", len(pm.Students))
       }
 
-      pm.addPercents(maxStudent, podPercents[i])
+      addPercents(maxStudent, pods[i], podPercents[i])
       pm.addToPod(maxStudent, maxIndex, i, &pods[i], &addedStudents)
     }
   }
@@ -104,14 +101,14 @@ func (pm *PodManager) MakePods(sorted bool) {
   // Cannot fit all students in pods of studentsPerPod
   // TODO: Refactor so that there are the min number of students in each pod,
   // and before adding a student to pod make sure no others have higher weight in that pod
-  if len(pm.students) != 0 {
-    for len(pm.students) != 0 {
-      s := pm.students[0]
+  if len(pm.Students) != 0 {
+    for len(pm.Students) != 0 {
+      s := pm.Students[0]
       maxPod := 0
       maxWeight := minWeight
       for i, pod := range pods {
         if i != eldPod {
-          if weight := s.weight(population, pm.percentsOf(pod)); weight > maxWeight {
+          if weight := s.weight(population, PercentsOf(pod)); weight > maxWeight {
             maxWeight = weight
             maxPod = i
           }
@@ -121,10 +118,10 @@ func (pm *PodManager) MakePods(sorted bool) {
     }
   }
 
-  pm.students = addedStudents
+  pm.Students = addedStudents
 
   if sorted {
-    sort.Sort(pm.students)
+    sort.Sort(pm.Students)
   }
 
   for i, pod := range pods {
@@ -137,37 +134,41 @@ func (pm *PodManager) MakePods(sorted bool) {
 
 }
 
-func (pm *PodManager) percentsOf(students students) percents {
-  percents := make(percents)
+func PercentsOf(students Students) Percents {
+  percents := make(Percents)
   for _, s := range students {
-    pm.addPercents(s, percents)
+    addPercents(s, students, percents)
   }
   return percents
 }
 
-func (pm *PodManager) addPercents(s student, percents percents) {
+func addPercents(s Student, students Students, percents Percents) {
   for field := range s.weightedFields() {
-    percents[field] += 1.0 / float32(len(pm.students))
+    percents[field] += 1.0 / Percent(len(students))
   }
 }
 
-func (pm *PodManager) addToPod(s student, index int, podIndex int, pod *students, addedStudents *students) {
+func (pm *PodManager) addToPod(s Student, index int, podIndex int, pod *Students, addedStudents *Students) {
   mlog.CheckGt(float64(len(s)), 0, index)
   s = append(s, strconv.Itoa(podIndex+1))
   *pod = append(*pod, s)
 
   // remove current student from slice of student
-  pm.students[index] = pm.students[len(pm.students)-1]
-  pm.students = pm.students[:len(pm.students)-1]
+  pm.Students[index] = pm.Students[len(pm.Students)-1]
+  pm.Students = pm.Students[:len(pm.Students)-1]
   *addedStudents = append(*addedStudents, s)
 }
 
 func (pm *PodManager) WritePods(path string) {
+  WriteStudents(path, pm.headers, pm.Students)
+}
+
+func WriteStudents(path string, headers []string, students Students) {
   f, err := os.Create(path)
   mlog.FatalIf(err)
 
   w := csv.NewWriter(f)
-  mlog.FatalIf(w.Write(pm.headers))
-  err = w.WriteAll(*(*[][]string)(unsafe.Pointer(&pm.students)))
+  mlog.FatalIf(w.Write(headers))
+  err = w.WriteAll(*(*[][]string)(unsafe.Pointer(&students)))
   mlog.FatalIf(err)
 }

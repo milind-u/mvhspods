@@ -1,7 +1,10 @@
 package mvhspods
 
 import (
+  "fmt"
   "strings"
+
+  "github.com/milind-u/mlog"
 )
 
 // Indices of the student fields that are weighted
@@ -12,16 +15,16 @@ const lastNameIndex = 2
 const firstNameIndex = 3
 const idIndex = 0
 
-type student []string
+type Student []string
 
-type students []student
+type Students []Student
 
 type field struct {
   index int
   string
 }
 
-func (s student) weightedFields() chan field {
+func (s Student) weightedFields() chan field {
   c := make(chan field, len(weightedFields))
   for _, index := range weightedFields {
     if index < len(s) && s[index] != "" {
@@ -32,23 +35,32 @@ func (s student) weightedFields() chan field {
   return c
 }
 
-func (s student) weight(population percents, pod percents) float32 {
-  var weight float32
+func (s Student) weight(population Percents, pod Percents) Percent {
+  var weight Percent
   for field := range s.weightedFields() {
     weight += population[field] - pod[field]
   }
   return weight
 }
 
-func (s students) Len() int {
+func (s Students) String() string {
+  b := new(strings.Builder)
+  for _, student := range s {
+    _, err := fmt.Fprintln(b, student)
+    mlog.WarningIf(err)
+  }
+  return b.String()
+}
+
+func (s Students) Len() int {
   return len(s)
 }
 
-func (s students) Swap(i, j int) {
+func (s Students) Swap(i, j int) {
   s[i], s[j] = s[j], s[i]
 }
 
-func (s students) Less(i, j int) bool {
+func (s Students) Less(i, j int) bool {
   diff := strings.Compare(s[i][lastNameIndex], s[j][lastNameIndex])
   if diff == 0 {
     diff = strings.Compare(s[i][firstNameIndex], s[j][firstNameIndex])
