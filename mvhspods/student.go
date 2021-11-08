@@ -19,16 +19,16 @@ type Student []string
 
 type Students []Student
 
-type field struct {
+type Field struct {
   index int
   string
 }
 
-func (s Student) weightedFields() chan field {
-  c := make(chan field, len(weightedFields))
+func (s Student) weightedFields() chan Field {
+  c := make(chan Field, len(weightedFields))
   for _, index := range weightedFields {
     if index < len(s) && s[index] != "" {
-      c <- field{index, s[index]}
+      c <- Field{index, s[index]}
     }
   }
   close(c)

@@ -8,7 +8,10 @@ import (
   "github.com/milind-u/glog"
 )
 
+const defaultPodSize = 12
+
 func main() {
+  podSize := flag.Int("pod_size", defaultPodSize, "Number of students per pod")
   sorted := flag.Bool("sorted", false,
     "Whether to sort the students output in alphabetical order")
   sampleData := flag.Bool("sample_data", false,
@@ -19,6 +22,6 @@ func main() {
 
   var pm mvhspods.PodManager
   pm.ReadStudents("students.csv", *sampleData)
-  pm.MakePods(*sorted)
+  pm.MakePods(*podSize, *sorted)
   pm.WritePods("pods.csv")
 }

@@ -14,17 +14,16 @@ import (
   "github.com/milind-u/glog"
 )
 
-const studentsPerPod = 5
-
 const eldPod = 0
 
 type Percent float32
 
-type Percents map[field]Percent
+type Percents map[Field]Percent
 
 type PodManager struct {
   Students
-  headers []string
+  Headers    []string
+  population Percents
 }
 
 func (pm *PodManager) ReadStudents(path string, sampleData bool) {
@@ -33,7 +32,7 @@ func (pm *PodManager) ReadStudents(path string, sampleData bool) {
   bufReader := bufio.NewReader(f)
   r := csv.NewReader(bufReader)
 
-  pm.headers, err = r.Read()
+  pm.Headers, err = r.Read()
   glog.FatalIf(err)
 
   for err != io.EOF {
@@ -59,13 +58,13 @@ func (pm *PodManager) ReadStudents(path string, sampleData bool) {
   }
 }
 
-func (pm *PodManager) MakePods(sorted bool) {
+func (pm *PodManager) MakePods(podSize int, sorted bool) {
   minWeight := Percent(math.Inf(-1))
 
   var addedStudents Students
-  numPods := len(pm.Students) / studentsPerPod
+  numPods := len(pm.Students) / podSize
 
-  pods := make([]Students, numPods, studentsPerPod)
+  pods := make([]Students, numPods, podSize)
   eldStudents := 0
   for i, student := range pm.Students {
     if groupMemberships := student[groupMembershipsIndex]; strings.Contains(groupMemberships, "ELD") {
@@ -74,18 +73,18 @@ func (pm *PodManager) MakePods(sorted bool) {
     }
   }
 
-  population := PercentsOf(pm.Students)
-  podPercents := make([]Percents, numPods, studentsPerPod)
+  pm.population = PercentsOf(pm.Students)
+  podPercents := make([]Percents, numPods, podSize)
 
   for i := eldPod + 1; i < numPods; i++ {
     podPercents[i] = make(Percents)
-    for j := 0; j < studentsPerPod; j++ {
+    for j := 0; j < podSize; j++ {
       // calculate percents of current pod
       maxWeight := minWeight
       var maxStudent Student
       maxIndex := 0
       for k, student := range pm.Students {
-        if weight := student.weight(population, podPercents[i]); weight > maxWeight {
+        if weight := student.weight(pm.population, podPercents[i]); weight > maxWeight {
           maxStudent = student
           maxIndex = k
           glog.CheckGt(float64(len(maxStudent)), 0, "Student is empty 1")
@@ -108,7 +107,7 @@ func (pm *PodManager) MakePods(sorted bool) {
       maxWeight := minWeight
       for i, pod := range pods {
         if i != eldPod {
-          if weight := s.weight(population, PercentsOf(pod)); weight > maxWeight {
+          if weight := s.weight(pm.population, PercentsOf(pod)); weight > maxWeight {
             maxWeight = weight
             maxPod = i
           }
@@ -159,8 +158,12 @@ func (pm *PodManager) addToPod(s Student, index int, podIndex int, pod *Students
   *addedStudents = append(*addedStudents, s)
 }
 
+func (pm *PodManager) Population() Percents {
+  return pm.population
+}
+
 func (pm *PodManager) WritePods(path string) {
-  WriteStudents(path, pm.headers, pm.Students)
+  WriteStudents(path, pm.Headers, pm.Students)
 }
 
 func WriteStudents(path string, headers []string, students Students) {

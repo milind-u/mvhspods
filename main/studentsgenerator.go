@@ -91,21 +91,14 @@ func makeRandStr() string {
   return b.String()
 }
 
-func main() {
-  // TODO: add go test with this data to make sure created pods are diverse
-
-  numStudents := flag.Int("num_students", 100,
-    "Number of students to generate")
-  flag.Parse()
-  glog.SetSeverity(glog.InfoSeverity)
-
+func generateStudents(numStudents int) mvhspods.Students {
   // Use same seed to have reproducible results
   const seed = 94040
   rand.Seed(seed)
 
   checkCategories()
 
-  students := make(mvhspods.Students, *numStudents)
+  students := make(mvhspods.Students, numStudents)
   for i := range students {
     students[i] = make(mvhspods.Student, len(fields))
     categoryIndex := 0
@@ -127,6 +120,19 @@ func main() {
       }
     }
   }
+
+  return students
+}
+
+func main() {
+  // TODO: add go test with this data to make sure created pods are diverse
+
+  numStudents := flag.Int("num_students", 100,
+    "Number of students to generate")
+  flag.Parse()
+  glog.SetSeverity(glog.InfoSeverity)
+
+  students := generateStudents(*numStudents)
 
   glog.Infoln(students)
   glog.Infoln(mvhspods.PercentsOf(students))
