@@ -1,6 +1,5 @@
 github.com/golang/glog v0.0.0-20210429001901-424d2337a529 h1:2voWjNECnrZRbfwXxHB1/j8wa6xdKn85B5NzgVL/pTU=
 github.com/golang/glog v0.0.0-20210429001901-424d2337a529/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
-github.com/milind-u/glog v0.0.0-20211106181957-0f4003aee3a5 h1:ZMVcswF9prEIkYWLTHqCQaaoANsd1Gcf4wH6Gv2e8wo=
 github.com/milind-u/glog v0.0.0-20211106181957-0f4003aee3a5/go.mod h1:/e2wQkTAoTDiS7d0wdGxgRfj2F7qAH/OszOYHDCSK7M=
-github.com/milind-u/mlog v0.0.0-20210630041426-972e8f74258d h1:RTzEZ1vF/Ea+MPTpqeRhDh4oNKw35Ulwr1ZgPghC/aE=
-github.com/milind-u/mlog v0.0.0-20210630041426-972e8f74258d/go.mod h1:in+XuB4ucPSkUEsetXf37z/mBFqlLQXt1cuZZBgPMVI=
+github.com/milind-u/glog v0.0.0-20211106182138-9da3a6a0e251 h1:0WC0+XA6MRYiKrqifmg+LktAnnxaxEcFUV1JDiu1+Dk=
+github.com/milind-u/glog v0.0.0-20211106182138-9da3a6a0e251/go.mod h1:/e2wQkTAoTDiS7d0wdGxgRfj2F7qAH/OszOYHDCSK7M=

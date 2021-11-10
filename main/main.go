@@ -4,14 +4,15 @@ import (
   "flag"
 
   "mvhspods"
+  "tests"
 
   "github.com/milind-u/glog"
 )
 
-const defaultPodSize = 12
-
 func main() {
-  podSize := flag.Int("pod_size", defaultPodSize, "Number of students per pod")
+  studentsToGenerate := flag.Int("students_to_generate", 0,
+    "If set, will generate the given number of random students instead of making pods")
+  podSize := flag.Int("pod_size", mvhspods.DefaultPodSize, "Number of students per pod")
   sorted := flag.Bool("sorted", false,
     "Whether to sort the students output in alphabetical order")
   sampleData := flag.Bool("sample_data", false,
@@ -20,8 +21,19 @@ func main() {
 
   glog.SetSeverity(glog.InfoSeverity)
 
-  var pm mvhspods.PodManager
-  pm.ReadStudents("students.csv", *sampleData)
-  pm.MakePods(*podSize, *sorted)
-  pm.WritePods("pods.csv")
+  if *studentsToGenerate != 0 {
+    flag.Parse()
+    glog.SetSeverity(glog.InfoSeverity)
+
+    students := tests.GenerateStudents(*studentsToGenerate)
+
+    glog.Infoln(students)
+    glog.Infoln(mvhspods.PercentsOf(students))
+    mvhspods.WriteStudents("students.csv", tests.Headers, students)
+  } else {
+    var pm mvhspods.PodManager
+    pm.ReadStudents("students.csv", *sampleData)
+    pm.MakePods(*podSize, *sorted)
+    pm.WritePods("pods.csv")
+  }
 }
