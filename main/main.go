@@ -27,13 +27,13 @@ func main() {
 
     students := tests.GenerateStudents(*studentsToGenerate)
 
-    glog.Infoln(students)
-    glog.Infoln(mvhspods.PercentsOf(students))
+    glog.Infoln("Percents: ", mvhspods.PercentsOf(students))
     mvhspods.WriteStudents("students.csv", tests.Headers, students)
   } else {
     var pm mvhspods.PodManager
     pm.ReadStudents("students.csv", *sampleData)
     pm.MakePods(*podSize, *sorted)
+    glog.Infoln("Stats:", tests.PodStats(pm.Pods(), pm.Population()))
     pm.WritePods("pods.csv")
   }
 }

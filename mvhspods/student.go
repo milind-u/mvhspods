@@ -20,8 +20,8 @@ type Student []string
 type Students []Student
 
 type Field struct {
-  index int
-  string
+  Index int
+  Name string
 }
 
 func (s Student) weightedFields() chan Field {
@@ -35,7 +35,7 @@ func (s Student) weightedFields() chan Field {
   return c
 }
 
-func (s Student) weight(population Percents, pod Percents) Percent {
+func (s Student) Weight(population Percents, pod Percents) Percent {
   var weight Percent
   for field := range s.weightedFields() {
     weight += population[field] - pod[field]

@@ -58,7 +58,7 @@ func checkCategories() {
     for _, g := range category {
       sum += g.percent
     }
-    glog.Check(math.Abs(float64(sum-mvhspods.Percent(1.0))) < 0.00001,
+    glog.Check(math.Abs(float64(sum-mvhspods.Percent(1.0))) < 1e-5,
       "Invalid percentages for category:", category)
   }
 }
