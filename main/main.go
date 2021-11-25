@@ -32,8 +32,9 @@ func main() {
   } else {
     var pm mvhspods.PodManager
     pm.ReadStudents("students.csv", *sampleData)
-    pm.MakePods(*podSize, *sorted)
-    glog.Infoln("Stats:", tests.PodStats(pm.Pods(), pm.Population()))
-    pm.WritePods("pods.csv")
+    pm.MakePods(*podSize)
+    glog.Infoln("ELD stats:", tests.PodStats(&pm.Eld))
+    glog.Infoln("Stats:", tests.PodStats(&pm.PodData))
+    pm.WritePods("pods.csv", *sorted)
   }
 }

@@ -21,7 +21,7 @@ type Students []Student
 
 type Field struct {
   Index int
-  Name string
+  Name  string
 }
 
 func (s Student) weightedFields() chan Field {
@@ -41,6 +41,19 @@ func (s Student) Weight(population Percents, pod Percents) Percent {
     weight += population[field] - pod[field]
   }
   return weight
+}
+
+func (s Student) Strip() {
+  // TODO: keep the whitespace and ELD level in the output
+  // Remove whitespace from fields, and make everything lowercase
+  // in case there were capitalization/spacing inconsistencies.
+  for field := range s.weightedFields() {
+    s[field.Index] = strings.ToLower(strings.ReplaceAll(s[field.Index], " ", ""))
+  }
+  // Trim the ELD group number to make all ELD levels the same group
+  if groupMemberships := s[groupMembershipsIndex]; strings.Contains(groupMemberships, "eld") {
+    s[groupMembershipsIndex] = groupMemberships[:len(groupMemberships)-1]
+  }
 }
 
 func (s Students) String() string {
@@ -69,4 +82,9 @@ func (s Students) Less(i, j int) bool {
     }
   }
   return diff < 0
+}
+
+func (s *Students) Remove(i int) {
+  (*s)[i] = (*s)[len(*s)-1]
+  *s = (*s)[:len(*s)-1]
 }

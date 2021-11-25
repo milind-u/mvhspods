@@ -118,6 +118,7 @@ func GenerateStudents(numStudents int) mvhspods.Students {
         log.Fatalln("Unknown field type")
       }
     }
+    students[i].Strip()
   }
 
   return students

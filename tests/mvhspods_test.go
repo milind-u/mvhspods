@@ -6,6 +6,7 @@ import (
   "mvhspods"
 )
 
+// Tests that the student weight function is working correctly
 func TestWeight(t *testing.T) {
   population := mvhspods.Percents{{1, "Graham"}: 0.3,
     {4, "Male"}: 0.5, {7, "English"}: 0.7}
@@ -22,22 +23,45 @@ func TestWeight(t *testing.T) {
   }
 }
 
-func TestDiversity(t *testing.T) {
-  const errTolerance mvhspods.Percent = 0.37
-  const avgErrTolerance mvhspods.Percent = 0.1
+// Tests the stats of random pods and checks if groups are represented in pods similarly
+// to how they are in the population
+func TestPodStats(t *testing.T) {
+  const numStudents = 500
 
-  students := GenerateStudents(500)
-  pm := mvhspods.PodManager{Headers: Headers, Students: students}
-  pm.MakePods(mvhspods.DefaultPodSize, false)
+  students := GenerateStudents(numStudents)
 
-  stats := PodStats(pm.Pods(), pm.Population())
-  t.Log("Stats:", stats)
+  pm := mvhspods.PodManager{Headers: Headers, PodData: mvhspods.PodData{Students: students}}
+  pm.MakePods(mvhspods.DefaultPodSize)
 
-  if stats.maxErr > errTolerance {
-    t.Error("Percent error exceeds tolerance of", errTolerance)
-  }
+  for _, eld := range [...]bool{true, false} {
+    pd := &pm.PodData
+    if eld {
+      pd = &pm.Eld
+    }
 
-  if stats.avgErr > avgErrTolerance {
-    t.Error("Average error exceeds tolerance of", avgErrTolerance)
+    tolerances := Stats{
+      maxErr:  0.37,
+      avgErr:  0.1,
+      badErrs: len(pd.Students) / 8,
+    }
+
+    stats := PodStats(pd)
+    label := "Stats:"
+    if eld {
+      label = "ELD stats:"
+    }
+    t.Log(label, stats)
+
+    if stats.maxErr > tolerances.maxErr {
+      t.Error("Percent error max exceeds tolerance of", tolerances.maxErr)
+    }
+
+    if stats.avgErr > tolerances.avgErr {
+      t.Error("Average error exceeds tolerance of", tolerances.avgErr)
+    }
+
+    if stats.badErrs > tolerances.badErrs {
+      t.Error("Bad error count exceeds tolerance of", tolerances.badErrs)
+    }
   }
 }
