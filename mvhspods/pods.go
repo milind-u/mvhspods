@@ -72,7 +72,7 @@ func (pm *PodManager) ReadStudents(path string, sampleData bool) {
 func (pm *PodManager) MakePods(podSize int) {
   for i := 0; i < len(pm.Students); i++ {
     student := pm.Students[i]
-    if groupMemberships := student[groupMembershipsIndex]; strings.Contains(groupMemberships, "eld") {
+    if groupMemberships := student[GroupMembershipsIndex]; strings.Contains(groupMemberships, "eld") {
       pm.Eld.Students = append(pm.Eld.Students, student)
       pm.Students.Remove(i)
       i--

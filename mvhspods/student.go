@@ -10,7 +10,7 @@ import (
 // Indices of the student fields that are weighted
 var weightedFields = [...]int{1, 4, 7, 8}
 
-const groupMembershipsIndex = 8
+const GroupMembershipsIndex = 8
 const lastNameIndex = 2
 const firstNameIndex = 3
 const idIndex = 0
@@ -51,8 +51,8 @@ func (s Student) Strip() {
     s[field.Index] = strings.ToLower(strings.ReplaceAll(s[field.Index], " ", ""))
   }
   // Trim the ELD group number to make all ELD levels the same group
-  if groupMemberships := s[groupMembershipsIndex]; strings.Contains(groupMemberships, "eld") {
-    s[groupMembershipsIndex] = groupMemberships[:len(groupMemberships)-1]
+  if groupMemberships := s[GroupMembershipsIndex]; strings.Contains(groupMemberships, "eld") {
+    s[GroupMembershipsIndex] = groupMemberships[:len(groupMemberships)-1]
   }
 }
 

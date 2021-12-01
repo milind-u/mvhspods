@@ -6,6 +6,9 @@ import (
   "mvhspods"
 )
 
+
+const numStudents = 500
+
 // Tests that the student weight function is working correctly
 func TestWeight(t *testing.T) {
   population := mvhspods.Percents{{1, "Graham"}: 0.3,
@@ -20,6 +23,25 @@ func TestWeight(t *testing.T) {
   const expectedWeight = (0.3 - 0.05) + (0.5 - 0.7) + (0.7 - 0.7)
   if mvhspods.Abs(expectedWeight-weight) > 1e-5 {
     t.Error("Weight does not match expected weight of", expectedWeight)
+  }
+}
+
+func TestEld(t *testing.T){
+  students := GenerateStudents(numStudents)
+
+  pm := mvhspods.PodManager{Headers: Headers, PodData: mvhspods.PodData{Students: students}}
+  pm.MakePods(mvhspods.DefaultPodSize)
+
+  for _, s := range pm.Eld.Students {
+    if groups := s[mvhspods.GroupMembershipsIndex]; groups != "eld" {
+      t.Error("This student is not ELD:", s)
+    }
+  }
+
+  for _, s := range pm.Students {
+    if groups := s[mvhspods.GroupMembershipsIndex]; groups == "eld" {
+      t.Error("This student is ELD:", s)
+    }
   }
 }
 
