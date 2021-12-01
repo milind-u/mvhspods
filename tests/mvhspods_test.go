@@ -26,6 +26,26 @@ func TestWeight(t *testing.T) {
   }
 }
 
+func TestAlphabeticOrder(t *testing.T){
+  students := GenerateStudents(numStudents)
+
+  pm := mvhspods.PodManager{Headers: Headers, PodData: mvhspods.PodData{Students: students}}
+  pm.MakePods(mvhspods.DefaultPodSize)
+  //call writePods method
+  pm.WritePods("test.csv", true)
+  //read csv like in readStudents method
+  pm.Students = nil
+  pm.ReadStudents("test.csv", false)
+  //make sure that the names are in sorted order using the strings.Compare() method
+  //go through student array
+  //check if current letter is ascending order, a-->z
+  for i := 0; i<len(pm.Students)-1; i++ {
+    if !pm.Students.Less(i, i+1) {
+      t.Error("The sort didn't work.")
+    }
+  }
+}
+
 func TestEld(t *testing.T){
   students := GenerateStudents(numStudents)
 
