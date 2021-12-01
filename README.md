@@ -19,8 +19,10 @@ Add the difference between the population percent of the field and the pod perce
 
 In pseudo code, this means:
 
+```python
 weight = 0
 for field in student:
-  weight += population\[field\] - pod\[field\]
+  weight += population[field] - pod[field]
+```
 
 This means that if groups are underrepresented in the pod, students with that group have a positive weight contribution from that field, and if groups are overrrepresented in the pod, students with that group have a negative weight contribution from that field.
