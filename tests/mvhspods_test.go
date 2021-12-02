@@ -1,13 +1,15 @@
 package tests
 
 import (
+  "os"
   "testing"
 
   "mvhspods"
+
+  "github.com/milind-u/glog"
 )
 
-
-const numStudents = 500
+var pm *mvhspods.PodManager
 
 // Tests that the student weight function is working correctly
 func TestWeight(t *testing.T) {
@@ -26,32 +28,21 @@ func TestWeight(t *testing.T) {
   }
 }
 
-func TestAlphabeticOrder(t *testing.T){
-  students := GenerateStudents(numStudents)
+func TestAlphabeticOrder(t *testing.T) {
+  pm2 := initPm()
+  pm2.WritePods("test.csv", true)
+  pm2.Students = nil
+  pm2.ReadStudents("test.csv", false)
 
-  pm := mvhspods.PodManager{Headers: Headers, PodData: mvhspods.PodData{Students: students}}
-  pm.MakePods(mvhspods.DefaultPodSize)
-  //call writePods method
-  pm.WritePods("test.csv", true)
-  //read csv like in readStudents method
-  pm.Students = nil
-  pm.ReadStudents("test.csv", false)
-  //make sure that the names are in sorted order using the strings.Compare() method
-  //go through student array
-  //check if current letter is ascending order, a-->z
-  for i := 0; i<len(pm.Students)-1; i++ {
-    if !pm.Students.Less(i, i+1) {
+  // make sure that the names are in sorted order
+  for i := 0; i < len(pm2.Students)-1; i++ {
+    if !pm2.Students.Less(i, i+1) {
       t.Error("The sort didn't work.")
     }
   }
 }
 
-func TestEld(t *testing.T){
-  students := GenerateStudents(numStudents)
-
-  pm := mvhspods.PodManager{Headers: Headers, PodData: mvhspods.PodData{Students: students}}
-  pm.MakePods(mvhspods.DefaultPodSize)
-
+func TestEld(t *testing.T) {
   for _, s := range pm.Eld.Students {
     if groups := s[mvhspods.GroupMembershipsIndex]; groups != "eld" {
       t.Error("This student is not ELD:", s)
@@ -68,19 +59,13 @@ func TestEld(t *testing.T){
 // Tests the stats of random pods and checks if groups are represented in pods similarly
 // to how they are in the population
 func TestPodStats(t *testing.T) {
-  const numStudents = 500
-
-  students := GenerateStudents(numStudents)
-
-  pm := mvhspods.PodManager{Headers: Headers, PodData: mvhspods.PodData{Students: students}}
-  pm.MakePods(mvhspods.DefaultPodSize)
-
   for _, eld := range [...]bool{true, false} {
     pd := &pm.PodData
     if eld {
       pd = &pm.Eld
     }
 
+    t.Log(len(pd.Students))
     tolerances := Stats{
       maxErr:  0.37,
       avgErr:  0.1,
@@ -106,4 +91,20 @@ func TestPodStats(t *testing.T) {
       t.Error("Bad error count exceeds tolerance of", tolerances.badErrs)
     }
   }
+}
+
+func initPm() *mvhspods.PodManager {
+  const numStudents = 500
+
+  students := GenerateStudents(numStudents)
+
+  pm := &mvhspods.PodManager{Headers: Headers, PodData: mvhspods.PodData{Students: students}}
+  pm.MakePods(mvhspods.DefaultPodSize)
+  return pm
+}
+
+func TestMain(m *testing.M) {
+  glog.SetSeverity(glog.InfoSeverity)
+  pm = initPm()
+  os.Exit(m.Run())
 }

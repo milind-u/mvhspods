@@ -51,7 +51,8 @@ func (s Student) Strip() {
     s[field.Index] = strings.ToLower(strings.ReplaceAll(s[field.Index], " ", ""))
   }
   // Trim the ELD group number to make all ELD levels the same group
-  if groupMemberships := s[GroupMembershipsIndex]; strings.Contains(groupMemberships, "eld") {
+  if groupMemberships := s[GroupMembershipsIndex]; strings.Contains(groupMemberships, "eld") &&
+      len(groupMemberships) == len("eld")+1 {
     s[GroupMembershipsIndex] = groupMemberships[:len(groupMemberships)-1]
   }
 }
