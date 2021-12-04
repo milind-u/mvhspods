@@ -8,13 +8,12 @@ import (
   "os"
   "sort"
   "strconv"
-  "strings"
   "unsafe"
 
   "github.com/milind-u/glog"
 )
 
-const DefaultPodSize = 12
+const DefaultPodSize = 10
 
 type Percent float32
 
@@ -28,7 +27,8 @@ type PodData struct {
 
 type PodManager struct {
   Headers []string
-  Eld     PodData
+  // Data for ELD 1/2 students (3/4 are integrated with the other students)
+  Eld PodData
   PodData
 }
 
@@ -72,7 +72,7 @@ func (pm *PodManager) ReadStudents(path string, sampleData bool) {
 func (pm *PodManager) MakePods(podSize int) {
   for i := 0; i < len(pm.Students); i++ {
     student := pm.Students[i]
-    if groupMemberships := student[GroupMembershipsIndex]; strings.Contains(groupMemberships, "eld") {
+    if groupMemberships := student[GroupMembershipsIndex]; groupMemberships == EldStr {
       pm.Eld.Students = append(pm.Eld.Students, student)
       pm.Students.Remove(i)
       i--

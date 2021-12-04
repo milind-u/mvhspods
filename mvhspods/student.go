@@ -15,6 +15,8 @@ const lastNameIndex = 2
 const firstNameIndex = 3
 const idIndex = 0
 
+const EldStr = "eld1/2"
+
 type Student []string
 
 type Students []Student
@@ -51,9 +53,12 @@ func (s Student) Strip() {
     s[field.Index] = strings.ToLower(strings.ReplaceAll(s[field.Index], " ", ""))
   }
   // Trim the ELD group number to make all ELD levels the same group
-  if groupMemberships := s[GroupMembershipsIndex]; strings.Contains(groupMemberships, "eld") &&
-      len(groupMemberships) == len("eld")+1 {
-    s[GroupMembershipsIndex] = groupMemberships[:len(groupMemberships)-1]
+  if groupMemberships := s[GroupMembershipsIndex]; strings.Contains(groupMemberships, "eld") {
+    if groupMemberships == "eld1" || groupMemberships == "eld2" {
+      s[GroupMembershipsIndex] = EldStr
+    } else {
+      s[GroupMembershipsIndex] = "eld3/4"
+    }
   }
 }
 

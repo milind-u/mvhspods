@@ -44,13 +44,13 @@ func TestAlphabeticOrder(t *testing.T) {
 
 func TestEld(t *testing.T) {
   for _, s := range pm.Eld.Students {
-    if groups := s[mvhspods.GroupMembershipsIndex]; groups != "eld" {
+    if groups := s[mvhspods.GroupMembershipsIndex]; groups != mvhspods.EldStr {
       t.Error("This student is not ELD:", s)
     }
   }
 
   for _, s := range pm.Students {
-    if groups := s[mvhspods.GroupMembershipsIndex]; groups == "eld" {
+    if groups := s[mvhspods.GroupMembershipsIndex]; groups == mvhspods.EldStr {
       t.Error("This student is ELD:", s)
     }
   }
@@ -65,14 +65,13 @@ func TestPodStats(t *testing.T) {
       pd = &pm.Eld
     }
 
-    t.Log(len(pd.Students))
     tolerances := Stats{
-      maxErr:  0.37,
-      avgErr:  0.1,
-      badErrs: len(pd.Students) / 8,
+      maxErr:  0.5,
+      avgErr:  0.11,
+      badErrs: int(float64(len(pd.Students)) / 4),
     }
 
-    stats := PodStats(pd)
+    stats := PodStatsWithTolerance(pd, tolerances.maxErr)
     label := "Stats:"
     if eld {
       label = "ELD stats:"
@@ -94,7 +93,7 @@ func TestPodStats(t *testing.T) {
 }
 
 func initPm() *mvhspods.PodManager {
-  const numStudents = 500
+  const numStudents = 600
 
   students := GenerateStudents(numStudents)
 

@@ -4,6 +4,8 @@ import (
   "fmt"
 
   "mvhspods"
+
+  "github.com/milind-u/glog"
 )
 
 // An error is defined as the magnitude of difference between a pecent of a certain group
@@ -20,6 +22,10 @@ type Stats struct {
 }
 
 func PodStats(pd *mvhspods.PodData) *Stats {
+  return PodStatsWithTolerance(pd, 1)
+}
+
+func PodStatsWithTolerance(pd *mvhspods.PodData, errTolerance mvhspods.Percent) *Stats {
   stats := new(Stats)
   numErrs := len(pd.Population()) * len(pd.Pods())
   index := 0
@@ -34,6 +40,10 @@ func PodStats(pd *mvhspods.PodData) *Stats {
       }
       if err > badErrThreshold {
         stats.badErrs++
+      }
+      if err > errTolerance {
+        glog.Errorf("Error of %v for field %v exceeds tolerance of %v\npod percent: %v, actual percent: %v\n",
+          err, field, errTolerance, podPercents[field], actualPercent)
       }
     }
   }
