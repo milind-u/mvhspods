@@ -91,18 +91,6 @@ func (pm *PodManager) MakePods(podSize int) {
 
   pm.makePods(&pm.Eld.Students, &pm.Eld.pods, &pm.Eld.population, podSize, true)
   pm.makePods(&pm.Students, &pm.pods, &pm.population, podSize, false)
-
-  i := 1
-  for _, pods := range [...][]Students{pm.Eld.pods, pm.pods} {
-    for _, pod := range pods {
-      glog.Infoln("Pod", i)
-      for _, s := range pod {
-        glog.Infoln(s)
-      }
-      glog.Infoln()
-      i++
-    }
-  }
 }
 
 func (pm *PodManager) makePods(students *Students, pods *[]Students, population *Percents, podSize int, eld bool) {
