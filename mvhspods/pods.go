@@ -185,7 +185,7 @@ func (pm *PodManager) WritePods(path string, sorted bool) {
 
 func (pm *PodManager) WritePodsToString() string {
   b := new(strings.Builder)
-  pm.writePodsWithWriter(b, false)
+  pm.writePodsWithWriter(b, true)
   return b.String()
 }
 
