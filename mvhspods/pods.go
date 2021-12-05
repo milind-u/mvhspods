@@ -8,6 +8,7 @@ import (
   "os"
   "sort"
   "strconv"
+  "strings"
   "unsafe"
 
   "github.com/milind-u/glog"
@@ -47,10 +48,19 @@ func (pd *PodData) Pods() []Students {
 func (pm *PodManager) ReadStudents(path string, sampleData bool) {
   f, err := os.Open(path)
   glog.FatalIf(err)
-  bufReader := bufio.NewReader(f)
+  pm.readStudents(f, sampleData)
+}
+
+func (pm *PodManager) ReadStudentsFromString(data string) {
+  pm.readStudents(strings.NewReader(data), false)
+}
+
+func (pm *PodManager) readStudents(reader io.Reader, sampleData bool) {
+  bufReader := bufio.NewReader(reader)
   r := csv.NewReader(bufReader)
 
-  pm.Headers, err = r.Read()
+  headers, err := r.Read()
+  pm.Headers = headers
   glog.FatalIf(err)
 
   for err != io.EOF {
@@ -180,7 +190,19 @@ func (pm *PodManager) addToPod(s Student, index int, podIndex int, podOffset int
 }
 
 func (pm *PodManager) WritePods(path string, sorted bool) {
-  w := newWriter(path)
+  f, err := os.Create(path)
+  glog.FatalIf(err)
+  pm.writePodsWithWriter(f, sorted)
+}
+
+func (pm *PodManager) WritePodsToString() string {
+  b := new(strings.Builder)
+  pm.writePodsWithWriter(b, false)
+  return b.String()
+}
+
+func (pm *PodManager) writePodsWithWriter(writer io.Writer, sorted bool) {
+  w := csv.NewWriter(writer)
   glog.FatalIf(w.Write(pm.Headers))
 
   if sorted {
@@ -194,15 +216,11 @@ func (pm *PodManager) WritePods(path string, sorted bool) {
 }
 
 func WriteStudents(path string, headers []string, students Students) {
-  w := newWriter(path)
-  glog.FatalIf(w.Write(headers))
-  writeStudentsWithWriter(w, students)
-}
-
-func newWriter(path string) *csv.Writer {
   f, err := os.Create(path)
   glog.FatalIf(err)
-  return csv.NewWriter(f)
+  w := csv.NewWriter(f)
+  glog.FatalIf(w.Write(headers))
+  writeStudentsWithWriter(w, students)
 }
 
 func writeStudentsWithWriter(w *csv.Writer, students Students) {
