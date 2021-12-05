@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Mvhspods</title>
+
+    <link rel="stylesheet" href="mvhspods.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+
+    <script src="wasm_exec.js"></script>
+    <script src="mvhspods.js"></script>
+  </head>
+  <body style="text-align: center">
+    <h1>Mvhspods</h1>
+
+    <h2>Instructions to Download as a "csv" File</h2>
+    <p>To do this, you first open your spreadsheet with the students and select the "file" option.</p>
+    <p>Then there should be a "download" option.</p>
+    <p>After that select the "Comma Separated Values" option and that should download as a csv file.</p>
+    <p>After you download the file, upload it below.</p>
+
+    <p>Click on the "Choose File" button to upload a file:</p>
+
+    <input type="file" id="students" accept="text/csv" onchange="doMakePods()">
+
+    <h2>Instructions to Upload "csv" Pod Groups File Into Google Sheets</h2>
+    <p>First open a new spreadsheet.</p>
+    <p>Then select the "file" option, and after that select the "import" option.</p>
+    <p>After that, it should take you to a window which has "My Drive" option selected. </p>
+    <p>Click on the "Upload" option and select the csv file that you downloaded from the previous set of
+      instructions.</p>
+
+  </body>
+</html>
