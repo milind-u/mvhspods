@@ -1,12 +1,12 @@
 function runGo() {
   const go = new Go();
-  WebAssembly.instantiateStreaming(fetch("mvhspods.wasm", go.importObject)).then(result => go.run(result.instance));
+  WebAssembly.instantiateStreaming(fetch("mvhspods.wasm"), go.importObject).then(result => go.run(result.instance));
 }
 
 runGo();
 
 function doMakePods() {
-  const files = this.files;
+  const files = document.getElementById("students").files;
   if (files.length !== 1) {
     console.error("Expected 1 file");
   }
