@@ -100,11 +100,6 @@ func (pm *PodManager) makePods(students *Students, pods *[]Students, population 
   *population = PercentsOf(*students)
 
   numPods := len(*students) / podSize
-  // If there are atleast half a pod size students left over,
-  // make another pod for them
-  if len(*students)%podSize >= podSize/2 {
-    numPods++
-  }
   *pods = make([]Students, numPods)
 
   podOffset := 0
