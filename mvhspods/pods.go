@@ -9,7 +9,6 @@ import (
   "sort"
   "strconv"
   "strings"
-  "unsafe"
 
   "github.com/milind-u/glog"
 )
@@ -64,17 +63,17 @@ func (pm *PodManager) readStudents(reader io.Reader, sampleData bool) {
   glog.FatalIf(err)
 
   for err != io.EOF {
-    fields, readErr := r.Read()
+    Fields, readErr := r.Read()
     err = readErr
     if err == nil {
-      s := Student(fields)
+      s := Student{Fields: Fields, Stripped: nil}
       // Trim the sample pod number if this is test data
       if sampleData {
-        s = s[:len(s)-1]
+        s.Fields = s.Fields[:len(s.Fields)-1]
       }
       s.Strip()
       pm.Students = append(pm.Students, s)
-      glog.CheckNe(len(s), 0, "Read empty student")
+      glog.CheckNe(len(s.Fields), 0, "Read empty student")
     }
   }
 }
@@ -82,7 +81,7 @@ func (pm *PodManager) readStudents(reader io.Reader, sampleData bool) {
 func (pm *PodManager) MakePods(podSize int) {
   for i := 0; i < len(pm.Students); i++ {
     student := pm.Students[i]
-    if groupMemberships := student[GroupMembershipsIndex]; groupMemberships == EldStr {
+    if groupMemberships := student.Stripped[GroupMembershipsIndex]; groupMemberships == EldStr {
       pm.Eld.Students = append(pm.Eld.Students, student)
       pm.Students.Remove(i)
       i--
@@ -118,11 +117,11 @@ func (pm *PodManager) makePods(students *Students, pods *[]Students, population 
         if weight := student.Weight(*population, podPercents); weight > maxWeight {
           maxStudent = student
           maxIndex = k
-          glog.CheckGt(float64(len(maxStudent)), 0, "Student is empty 1")
+          glog.CheckGt(float64(len(maxStudent.Stripped)), 0, "Student is empty 1")
         }
       }
-      addPercents(maxStudent, (*pods)[i], podPercents)
-      pm.addToPod(maxStudent, maxIndex, i, podOffset, &(*pods)[i], &addedStudents, students)
+      addPercents(&maxStudent, (*pods)[i], podPercents)
+      pm.addToPod(&maxStudent, maxIndex, i, podOffset, &(*pods)[i], &addedStudents, students)
     }
   }
 
@@ -139,7 +138,7 @@ func (pm *PodManager) makePods(students *Students, pods *[]Students, population 
           maxIndex = j
         }
       }
-      pm.addToPod((*students)[maxIndex], maxIndex, index, podOffset, &(*pods)[index], &addedStudents, students)
+      pm.addToPod(&(*students)[maxIndex], maxIndex, index, podOffset, &(*pods)[index], &addedStudents, students)
     }
   }
 
@@ -149,12 +148,12 @@ func (pm *PodManager) makePods(students *Students, pods *[]Students, population 
 func PercentsOf(students Students) Percents {
   percents := make(Percents)
   for _, s := range students {
-    addPercents(s, students, percents)
+    addPercents(&s, students, percents)
   }
   return percents
 }
 
-func addPercents(s Student, students Students, percents Percents) {
+func addPercents(s *Student, students Students, percents Percents) {
   if len(students) != 0 {
     for field := range s.weightedFields() {
       percents[field] += 1.0 / Percent(len(students))
@@ -162,14 +161,14 @@ func addPercents(s Student, students Students, percents Percents) {
   }
 }
 
-func (pm *PodManager) addToPod(s Student, index int, podIndex int, podOffset int, pod *Students, addedStudents *Students, students *Students) {
-  glog.CheckGt(float64(len(s)), 0, "Empty student at index", index)
-  s = append(s, strconv.Itoa(podIndex+1+podOffset))
-  *pod = append(*pod, s)
+func (pm *PodManager) addToPod(s *Student, index int, podIndex int, podOffset int, pod *Students, addedStudents *Students, students *Students) {
+  glog.CheckGt(float64(len(s.Fields)), 0, "Empty student at index", index)
+  s.Fields = append(s.Fields, strconv.Itoa(podIndex+1+podOffset))
+  *pod = append(*pod, *s)
 
   // remove current student from slice of student
   students.Remove(index)
-  *addedStudents = append(*addedStudents, s)
+  *addedStudents = append(*addedStudents, *s)
 }
 
 func (pm *PodManager) WritePods(path string, sorted bool) {
@@ -207,6 +206,8 @@ func WriteStudents(path string, headers []string, students Students) {
 }
 
 func writeStudentsWithWriter(w *csv.Writer, students Students) {
-  err := w.WriteAll(*(*[][]string)(unsafe.Pointer(&students)))
-  glog.FatalIf(err)
+  for _, s := range students {
+    err := w.Write(s.Fields)
+    glog.FatalIf(err)
+  }
 }

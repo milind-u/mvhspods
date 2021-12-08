@@ -7,7 +7,7 @@ import (
   "github.com/milind-u/glog"
 )
 
-// Indices of the student fields that are weighted
+// Indices of the student Fields that are weighted
 var weightedFields = [...]int{1, 4, 7, 8}
 
 const GroupMembershipsIndex = 8
@@ -17,7 +17,10 @@ const idIndex = 0
 
 const EldStr = "eld1/2"
 
-type Student []string
+type Student struct {
+  Fields   []string
+  Stripped []string
+}
 
 type Students []Student
 
@@ -26,18 +29,18 @@ type Field struct {
   Name  string
 }
 
-func (s Student) weightedFields() chan Field {
+func (s *Student) weightedFields() chan Field {
   c := make(chan Field, len(weightedFields))
   for _, index := range weightedFields {
-    if index < len(s) && s[index] != "" {
-      c <- Field{index, s[index]}
+    if index < len(s.Stripped) && s.Stripped[index] != "" {
+      c <- Field{index, s.Stripped[index]}
     }
   }
   close(c)
   return c
 }
 
-func (s Student) Weight(population Percents, pod Percents) Percent {
+func (s *Student) Weight(population Percents, pod Percents) Percent {
   var weight Percent
   for field := range s.weightedFields() {
     weight += population[field] - pod[field]
@@ -45,19 +48,21 @@ func (s Student) Weight(population Percents, pod Percents) Percent {
   return weight
 }
 
-func (s Student) Strip() {
+func (s *Student) Strip() {
+  s.Stripped = make([]string, len(s.Fields))
+  copy(s.Stripped, s.Fields)
   // TODO: keep the whitespace and ELD level in the output
-  // Remove whitespace from fields, and make everything lowercase
+  // Remove whitespace from Fields, and make everything lowercase
   // in case there were capitalization/spacing inconsistencies.
   for field := range s.weightedFields() {
-    s[field.Index] = strings.ToLower(strings.ReplaceAll(s[field.Index], " ", ""))
+    s.Stripped[field.Index] = strings.ToLower(strings.ReplaceAll(s.Stripped[field.Index], " ", ""))
   }
   // Trim the ELD group number to make all ELD levels the same group
-  if groupMemberships := s[GroupMembershipsIndex]; strings.Contains(groupMemberships, "eld") {
+  if groupMemberships := s.Stripped[GroupMembershipsIndex]; strings.Contains(groupMemberships, "eld") {
     if groupMemberships == "eld1" || groupMemberships == "eld2" {
-      s[GroupMembershipsIndex] = EldStr
+      s.Stripped[GroupMembershipsIndex] = EldStr
     } else {
-      s[GroupMembershipsIndex] = "eld3/4"
+      s.Stripped[GroupMembershipsIndex] = "eld3/4"
     }
   }
 }
@@ -80,11 +85,11 @@ func (s Students) Swap(i, j int) {
 }
 
 func (s Students) Less(i, j int) bool {
-  diff := strings.Compare(s[i][lastNameIndex], s[j][lastNameIndex])
+  diff := strings.Compare(s[i].Stripped[lastNameIndex], s[j].Stripped[lastNameIndex])
   if diff == 0 {
-    diff = strings.Compare(s[i][firstNameIndex], s[j][firstNameIndex])
+    diff = strings.Compare(s[i].Stripped[firstNameIndex], s[j].Stripped[firstNameIndex])
     if diff == 0 {
-      diff = strings.Compare(s[i][idIndex], s[j][idIndex])
+      diff = strings.Compare(s[i].Stripped[idIndex], s[j].Stripped[idIndex])
     }
   }
   return diff < 0

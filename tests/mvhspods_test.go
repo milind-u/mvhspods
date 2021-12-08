@@ -13,12 +13,13 @@ var pm *mvhspods.PodManager
 
 // Tests that the student weight function is working correctly
 func TestWeight(t *testing.T) {
-  population := mvhspods.Percents{{1, "Graham"}: 0.3,
-    {4, "Male"}: 0.5, {7, "English"}: 0.7}
-  pod := mvhspods.Percents{{1, "Graham"}: 0.05,
-    {4, "Male"}: 0.7, {7, "English"}: 0.7}
-  s := mvhspods.Student{"100012345", "Graham", "Bar", "Foo", "Male", "Parent", "6501231234",
-    "English", ""}
+  population := mvhspods.Percents{{1, "graham"}: 0.3,
+    {4, "male"}: 0.5, {7, "english"}: 0.7}
+  pod := mvhspods.Percents{{1, "graham"}: 0.05,
+    {4, "male"}: 0.7, {7, "english"}: 0.7}
+  s := mvhspods.Student{Fields: []string{"100012345", "Graham", "Bar", "Foo", "Male", "Parent", "6501231234",
+    "English", ""}, Stripped: nil}
+  s.Strip()
 
   weight := s.Weight(population, pod)
   t.Log("Weight:", weight)
@@ -44,13 +45,13 @@ func TestAlphabeticOrder(t *testing.T) {
 
 func TestEld(t *testing.T) {
   for _, s := range pm.Eld.Students {
-    if groups := s[mvhspods.GroupMembershipsIndex]; groups != mvhspods.EldStr {
+    if groups := s.Stripped[mvhspods.GroupMembershipsIndex]; groups != mvhspods.EldStr {
       t.Error("This student is not ELD:", s)
     }
   }
 
   for _, s := range pm.Students {
-    if groups := s[mvhspods.GroupMembershipsIndex]; groups == mvhspods.EldStr {
+    if groups := s.Stripped[mvhspods.GroupMembershipsIndex]; groups == mvhspods.EldStr {
       t.Error("This student is ELD:", s)
     }
   }

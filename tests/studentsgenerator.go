@@ -101,21 +101,21 @@ func GenerateStudents(numStudents int) mvhspods.Students {
 
   students := make(mvhspods.Students, numStudents)
   for i := range students {
-    students[i] = make(mvhspods.Student, len(fields))
+    students[i] = mvhspods.Student{Fields: make([]string, len(fields)), Stripped: nil}
     categoryIndex := 0
     for j := range fields {
       switch fields[j] {
       case categorical:
-        students[i][j] = chooseRandGroup(categories[categoryIndex])
+        students[i].Fields[j] = chooseRandGroup(categories[categoryIndex])
         categoryIndex++
       case randStr:
-        students[i][j] = makeRandStr()
+        students[i].Fields[j] = makeRandStr()
       case id:
-        students[i][j] = strconv.Itoa(int(math.Pow(10, 8)) +
-            rand.Intn(int(math.Pow(10, 5))))
+        students[i].Fields[j] = strconv.Itoa(1e8 +
+            rand.Intn(1e5))
       case phoneNum:
-        students[i][j] = strconv.Itoa(rand.Intn(int(math.Pow(10, 10))-int(math.Pow(10, 9))) +
-            int(math.Pow(10, 9)))
+        students[i].Fields[j] = strconv.Itoa(rand.Intn(1e10-1e9) +
+            1e9)
       default:
         log.Fatalln("Unknown field type")
       }
