@@ -62,6 +62,11 @@ a:hover {
 }
 
 body {
-  background-color: #F0F8FF; /*#F3FFE3;*/
+  background-color: #F0F8FF;
   overflow-x: hidden;
+  text-align: center;
+}
+
+p {
+  white-space: pre-line;
 }
