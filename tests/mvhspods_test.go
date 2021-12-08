@@ -9,6 +9,8 @@ import (
   "github.com/milind-u/glog"
 )
 
+const numStudents = 600
+
 var pm *mvhspods.PodManager
 
 // Tests that the student weight function is working correctly
@@ -26,6 +28,22 @@ func TestWeight(t *testing.T) {
   const expectedWeight = (0.3 - 0.05) + (0.5 - 0.7) + (0.7 - 0.7)
   if mvhspods.Abs(expectedWeight-weight) > 1e-5 {
     t.Error("Weight does not match expected weight of", expectedWeight)
+  }
+}
+
+func TestPodSize(t *testing.T) {
+  actualNumStudents := 0
+  for _, pd := range []*mvhspods.PodData{&pm.PodData, &pm.Eld} {
+    for _, pod := range pd.Pods() {
+      actualNumStudents += len(pod)
+      if len(pod) < mvhspods.DefaultPodSize || len(pod) > mvhspods.DefaultPodSize+1 {
+        t.Errorf("Expected pod size between %v and %v, but got %v",
+          mvhspods.DefaultPodSize, mvhspods.DefaultPodSize+1, len(pod))
+      }
+    }
+  }
+  if actualNumStudents != numStudents {
+    t.Errorf("Expected number of students to be %v, but got %v", numStudents, actualNumStudents)
   }
 }
 
@@ -60,12 +78,7 @@ func TestEld(t *testing.T) {
 // Tests the stats of random pods and checks if groups are represented in pods similarly
 // to how they are in the population
 func TestPodStats(t *testing.T) {
-  for _, eld := range [...]bool{true, false} {
-    pd := &pm.PodData
-    if eld {
-      pd = &pm.Eld
-    }
-
+  for _, pd := range []*mvhspods.PodData{&pm.PodData, &pm.Eld} {
     tolerances := Stats{
       maxErr:  0.5,
       avgErr:  0.11,
@@ -74,7 +87,7 @@ func TestPodStats(t *testing.T) {
 
     stats := PodStatsWithTolerance(pd, tolerances.maxErr)
     label := "Stats:"
-    if eld {
+    if pd == &pm.Eld {
       label = "ELD stats:"
     }
     t.Log(label, stats)
@@ -94,8 +107,6 @@ func TestPodStats(t *testing.T) {
 }
 
 func initPm() *mvhspods.PodManager {
-  const numStudents = 600
-
   students := GenerateStudents(numStudents)
 
   pm := &mvhspods.PodManager{Headers: Headers, PodData: mvhspods.PodData{Students: students}}
