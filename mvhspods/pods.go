@@ -59,7 +59,7 @@ func (pm *PodManager) readStudents(reader io.Reader, sampleData bool) {
   r := csv.NewReader(bufReader)
 
   headers, err := r.Read()
-  pm.Headers = headers
+  pm.Headers = append(headers, "PodGroup")
   glog.FatalIf(err)
 
   for err != io.EOF {

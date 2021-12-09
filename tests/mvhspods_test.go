@@ -108,6 +108,7 @@ func TestPodStats(t *testing.T) {
 
 func initPm() *mvhspods.PodManager {
   students := GenerateStudents(numStudents)
+  mvhspods.WriteStudents("students.csv", Headers, students)
 
   pm := &mvhspods.PodManager{Headers: Headers, PodData: mvhspods.PodData{Students: students}}
   pm.MakePods(mvhspods.DefaultPodSize)

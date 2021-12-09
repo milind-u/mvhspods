@@ -1,6 +1,6 @@
 html, body {
   height: 100%;
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
 }
 
 ::-webkit-scrollbar-track {
@@ -28,45 +28,38 @@ html, body {
   background-color: #1f1f1f;
 }
 
-#links {
-  position: fixed;
-  top: 1%;
-  left: 1%;
+label {
+  background-color: #20bf55;
+  background-image: linear-gradient(315deg, #20bf55 0%, #01baef 74%);
+  padding: 0.5rem;
+  border-radius: 0.3rem;
+  cursor: pointer;
+  margin-top: 1rem;
 }
 
-input, select {
-  padding: 7px 0px;
-  border: 1px solid #bbb;
-  border-radius: 4px;
+label:hover {
+  background-color: #9eabe4;
+  background-image: linear-gradient(315deg, #9eabe4 0%, #77eed8 74%);
 }
 
-h3 {
-  font-size: 1vw;
-}
-
-h1 {
-  font-size: 2vw;
-  font-family: 'Montserrat', sans-serif;
+h2 {
+  font-size: 1.5em;
   text-align: center;
 }
 
-a {
-  font-family: 'Montserrat', sans-serif;
-  text-decoration: none;
-  color: navy;
-}
-
-a:hover {
-  text-decoration: none;
-  color: blue;
+h1 {
+  font-size: 1.5em;
+  font-family: "Montserrat", sans-serif;
+  text-align: center;
 }
 
 body {
   background-color: #F0F8FF;
   overflow-x: hidden;
-  text-align: center;
+  margin-left:auto;margin-right:auto;width:40em;
 }
 
 p {
   white-space: pre-line;
+  font-size: 1.3em;
 }
