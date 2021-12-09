@@ -9,13 +9,19 @@
     <script src="wasm_exec.js"></script>
     <script src="mvhspods.js"></script>
   </head>
-  <body markdown="1">
+  <body>
     <h1>Mvhspods</h1>
     <h2>Download students as a csv</h2>
     <p>
-      To do this, you first open your spreadsheet with the students and click on the the <i>File</i>&rarr;<i>Download</i> option.
-      After that select the <i>Comma Separated Values</i> option.
-      Then, upload it below and a new <i>csv</i> file will be downloaded as <i>pods.csv</i> that has the pod groups.
+      To do this, first open the spreadsheet with the students and click on <i>File</i>&rarr;<i>Download</i>.<br>
+      After that select the <i>Comma Separated Values</i> option.<br>
+      Then, upload it below and a new csv will be downloaded as <i>pods.csv</i> that has the pod groups.<br>
+      Make sure that the headers in your spreadsheet are in the same order as the ones <a
+            href="https://docs.google.com/spreadsheets/d/1StKfSAsNfFN2W7ttlXoz7FIpdhhwLUiz-Vm7M8OzZkk/edit?usp=sharing">here</a>.<br>
+      If you need the order to be changed, email Milind <a href="mailto: 100025276@mvla.net?subject=Mvhspods"
+                                                           target="_blank">
+      here
+    </a>.
     </p>
     <br>
     <input type="file" id="students" accept="text/csv" onchange="doMakePods()" hidden>
@@ -24,9 +30,9 @@
     <br>
     <h2>Upload pod groups csv into Google Sheets</h2>
     <p>
-      Open a new spreadsheet.
-      Then select the <i>File<i>&rarr;</i>Import</i> option.
-      Now click on the <i>Upload</i> option and select the csv file with the pod groups.
+      Open a new spreadsheet.<br>
+      Then select <i>File<i>&rarr;</i>Import</i>.<br>
+      Now click on <i>Upload</i> and select the csv file with the pod groups.
     </p>
   </body>
 </html>

@@ -56,10 +56,22 @@ h1 {
 body {
   background-color: #F0F8FF;
   overflow-x: hidden;
-  margin-left:auto;margin-right:auto;width:40em;
+  margin-left: auto;
+  margin-right: auto;
+  width: 40em;
 }
 
 p {
-  white-space: pre-line;
   font-size: 1.3em;
+}
+
+a {
+  font-family: 'Montserrat', sans-serif;
+  text-decoration: none;
+  color: navy;
+}
+
+a:hover {
+  text-decoration: none;
+  color: blue;
 }
