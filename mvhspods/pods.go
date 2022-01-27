@@ -98,7 +98,7 @@ func (pm *PodManager) makePods(students *Students, pods *[]Students, population 
   var addedStudents Students
   *population = PercentsOf(*students)
 
-  numPods := len(*students) / podSize
+  numPods := int(math.Max(float64(len(*students)/podSize), 1.0))
   *pods = make([]Students, numPods)
 
   podOffset := 0
@@ -109,7 +109,6 @@ func (pm *PodManager) makePods(students *Students, pods *[]Students, population 
   for i := 0; i < numPods; i++ {
     podPercents := make(Percents)
     for j := 0; j < podSize && len(*students) != 0; j++ {
-      // calculate percents of current pod
       maxWeight := minWeight
       var maxStudent Student
       maxIndex := 0
@@ -121,14 +120,14 @@ func (pm *PodManager) makePods(students *Students, pods *[]Students, population 
         }
       }
       addPercents(&maxStudent, (*pods)[i], podPercents)
-      pm.addToPod(&maxStudent, maxIndex, i, podOffset, &(*pods)[i], &addedStudents, students)
+      pm.addToPod(maxStudent, maxIndex, i, podOffset, &(*pods)[i], &addedStudents, students)
     }
   }
 
   if len(*students) != 0 { // Couldn't fit all students in the pods
     for i := 0; len(*students) != 0; i++ {
-      index := i % len(*pods)
-      percents := PercentsOf((*pods)[index])
+      podIndex := i % len(*pods)
+      percents := PercentsOf((*pods)[podIndex])
 
       maxIndex := 0
       maxWeight := minWeight
@@ -138,7 +137,7 @@ func (pm *PodManager) makePods(students *Students, pods *[]Students, population 
           maxIndex = j
         }
       }
-      pm.addToPod(&(*students)[maxIndex], maxIndex, index, podOffset, &(*pods)[index], &addedStudents, students)
+      pm.addToPod((*students)[maxIndex], maxIndex, podIndex, podOffset, &(*pods)[podIndex], &addedStudents, students)
     }
   }
 
@@ -161,14 +160,14 @@ func addPercents(s *Student, students Students, percents Percents) {
   }
 }
 
-func (pm *PodManager) addToPod(s *Student, index int, podIndex int, podOffset int, pod *Students, addedStudents *Students, students *Students) {
+func (pm *PodManager) addToPod(s Student, index int, podIndex int, podOffset int, pod *Students, addedStudents *Students, students *Students) {
   glog.CheckGt(float64(len(s.Fields)), 0, "Empty student at index", index)
   s.Fields = append(s.Fields, strconv.Itoa(podIndex+1+podOffset))
-  *pod = append(*pod, *s)
+  *pod = append(*pod, s)
 
   // remove current student from slice of student
   students.Remove(index)
-  *addedStudents = append(*addedStudents, *s)
+  *addedStudents = append(*addedStudents, s)
 }
 
 func (pm *PodManager) WritePods(path string, sorted bool) {
@@ -210,4 +209,5 @@ func writeStudentsWithWriter(w *csv.Writer, students Students) {
     err := w.Write(s.Fields)
     glog.FatalIf(err)
   }
+  w.Flush()
 }
