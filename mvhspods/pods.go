@@ -3,6 +3,7 @@ package mvhspods
 import (
   "bufio"
   "encoding/csv"
+  "fmt"
   "io"
   "math"
   "os"
@@ -194,6 +195,38 @@ func (pm *PodManager) writePodsWithWriter(writer io.Writer, sorted bool) {
     writeStudentsWithWriter(w, pm.Eld.Students)
   }
   writeStudentsWithWriter(w, pm.Students)
+
+  // Write pod percents
+  numCols := len(pm.Students[0].Stripped) + 1
+  pm.writePercents(w, pm.Population(), 0, numCols)
+  for i, pod := range pm.Eld.pods {
+    pm.writePercents(w, PercentsOf(pod), i+1, numCols)
+  }
+  for i, pod := range pm.pods {
+    pm.writePercents(w, PercentsOf(pod), i+1+len(pm.Eld.pods), numCols)
+  }
+
+  w.Flush()
+}
+
+func (pm *PodManager) writePercents(w *csv.Writer, percents Percents, podNum, numCols int) {
+  output := make([]strings.Builder, numCols)
+  for f, p := range percents {
+    output[f.Index].WriteString(fmt.Sprintf("%v: %v, ", f.Name, p))
+  }
+  output[len(output)-1].WriteString(strconv.Itoa(podNum))
+
+  strs := make([]string, numCols)
+  const separator = ", "
+  for i, b := range output {
+    s := b.String()
+    if len(s) >= len(separator) && s[len(s)-len(separator):] == separator {
+      s = s[:len(s)-len(separator)]
+    }
+    strs[i] = s
+  }
+
+  glog.FatalIf(w.Write(strs))
 }
 
 func WriteStudents(path string, headers []string, students Students) {
