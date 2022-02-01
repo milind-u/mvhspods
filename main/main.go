@@ -19,7 +19,7 @@ func webMain() js.Func {
       var pm mvhspods.PodManager
       pm.ReadStudentsFromString(csv)
       pm.MakePods(mvhspods.DefaultPodSize)
-      pods = pm.WritePodsToString()
+      pods = pm.WritePodsToString(false)
     } else {
       glog.Errorln("Expected 1 arg (csv), but got", len(args))
     }

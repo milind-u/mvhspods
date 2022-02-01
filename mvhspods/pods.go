@@ -58,7 +58,7 @@ func (pm *PodManager) ReadStudentsFromString(data string) {
 func (pm *PodManager) readStudents(reader io.Reader, sampleData bool) {
   bufReader := bufio.NewReader(reader)
   r := csv.NewReader(bufReader)
-
+  index := 0
   headers, err := r.Read()
   pm.Headers = append(headers, "PodGroup")
   glog.FatalIf(err)
@@ -73,6 +73,8 @@ func (pm *PodManager) readStudents(reader io.Reader, sampleData bool) {
         s.Fields = s.Fields[:len(s.Fields)-1]
       }
       s.Strip()
+      s.Stripped = append(s.Stripped, strconv.Itoa(index))
+      index++
       pm.Students = append(pm.Students, s)
       glog.CheckNe(len(s.Fields), 0, "Read empty student")
     }
@@ -177,9 +179,9 @@ func (pm *PodManager) WritePods(path string, sorted bool) {
   pm.writePodsWithWriter(f, sorted)
 }
 
-func (pm *PodManager) WritePodsToString() string {
+func (pm *PodManager) WritePodsToString(sorted bool) string {
   b := new(strings.Builder)
-  pm.writePodsWithWriter(b, true)
+  pm.writePodsWithWriter(b, sorted)
   return b.String()
 }
 
@@ -192,12 +194,20 @@ func (pm *PodManager) writePodsWithWriter(writer io.Writer, sorted bool) {
     pm.Students = append(pm.Students, pm.Eld.Students...)
     sort.Sort(pm.Students)
   } else {
-    writeStudentsWithWriter(w, pm.Eld.Students)
+    students := make(Students, len(pm.Students)+len(pm.Eld.Students))
+    for _, studentGroup := range [...]Students{pm.Eld.Students, pm.Students} {
+      for _, s := range studentGroup {
+        index, err := strconv.Atoi(s.Stripped[len(s.Stripped)-1])
+        glog.FatalIf(err)
+        students[index] = s
+      }
+    }
+    pm.Students = students
   }
   writeStudentsWithWriter(w, pm.Students)
 
   // Write pod percents
-  numCols := len(pm.Students[0].Stripped) + 1
+  numCols := len(pm.Students[0].Fields)
   pm.writePercents(w, pm.Population(), 0, numCols)
   for i, pod := range pm.Eld.pods {
     pm.writePercents(w, PercentsOf(pod), i+1, numCols)
