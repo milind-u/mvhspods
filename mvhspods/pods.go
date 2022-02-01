@@ -58,7 +58,7 @@ func (pm *PodManager) ReadStudentsFromString(data string) {
 func (pm *PodManager) readStudents(reader io.Reader, sampleData bool) {
   bufReader := bufio.NewReader(reader)
   r := csv.NewReader(bufReader)
-
+  index := 0
   headers, err := r.Read()
   pm.Headers = append(headers, "PodGroup")
   glog.FatalIf(err)
@@ -73,6 +73,8 @@ func (pm *PodManager) readStudents(reader io.Reader, sampleData bool) {
         s.Fields = s.Fields[:len(s.Fields)-1]
       }
       s.Strip()
+      s.Stripped = append(s.Stripped, strconv.Itoa(index))
+      index++
       pm.Students = append(pm.Students, s)
       glog.CheckNe(len(s.Fields), 0, "Read empty student")
     }

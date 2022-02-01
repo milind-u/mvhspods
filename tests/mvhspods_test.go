@@ -153,6 +153,7 @@ func initPm() *mvhspods.PodManager {
   return pm
 }
 
+
 func TestMain(m *testing.M) {
   glog.SetSeverity(glog.InfoSeverity)
   pm = initPm()
