@@ -222,12 +222,12 @@ func (pm *PodManager) writePodsWithWriter(writer io.Writer, sorted bool) {
 func (pm *PodManager) writePercents(w *csv.Writer, percents Percents, podNum, numCols int) {
   output := make([]strings.Builder, numCols)
   for f, p := range percents {
-    output[f.Index].WriteString(fmt.Sprintf("%v: %v, ", f.Name, p))
+    output[f.Index].WriteString(fmt.Sprintf("%v: %v|", f.Name, p))
   }
   output[len(output)-1].WriteString(strconv.Itoa(podNum))
 
   strs := make([]string, numCols)
-  const separator = ", "
+  const separator = "|"
   for i, b := range output {
     s := b.String()
     if len(s) >= len(separator) && s[len(s)-len(separator):] == separator {
