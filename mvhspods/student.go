@@ -7,13 +7,16 @@ import (
   "github.com/milind-u/glog"
 )
 
-// Indices of the student Fields that are weighted
-var weightedFields = [...]int{1, 4, 7, 8}
-
-const GroupMembershipsIndex = 8
+const idIndex = 0
+const schoolIndex = 1
 const lastNameIndex = 2
 const firstNameIndex = 3
-const idIndex = 0
+const genderIndex = 4
+const languageIndex = 7
+const GroupMembershipsIndex = 8
+
+// Indices of the student Fields that are weighted
+var weightedFields = [...]int{schoolIndex, genderIndex, languageIndex, GroupMembershipsIndex}
 
 const EldStr = "eld1/2"
 
@@ -41,9 +44,10 @@ func (s *Student) weightedFields() chan Field {
 }
 
 func (s *Student) Weight(population Percents, pod Percents) Percent {
-  var weight Percent
+  weight := Percent(0)
   for field := range s.weightedFields() {
-    weight += population[field] - pod[field]
+    delta := population[field] - pod[field]
+    weight += delta
   }
   return weight
 }
@@ -51,7 +55,6 @@ func (s *Student) Weight(population Percents, pod Percents) Percent {
 func (s *Student) Strip() {
   s.Stripped = make([]string, len(s.Fields))
   copy(s.Stripped, s.Fields)
-  // TODO: keep the whitespace and ELD level in the output
   // Remove whitespace from Fields, and make everything lowercase
   // in case there were capitalization/spacing inconsistencies.
   for field := range s.weightedFields() {

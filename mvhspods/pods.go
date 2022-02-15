@@ -111,6 +111,7 @@ func (pm *PodManager) makePods(students *Students, pods *[]Students, population 
 
   for i := 0; i < numPods; i++ {
     podPercents := make(Percents)
+
     for j := 0; j < podSize && len(*students) != 0; j++ {
       maxWeight := minWeight
       var maxStudent Student
@@ -119,11 +120,12 @@ func (pm *PodManager) makePods(students *Students, pods *[]Students, population 
         if weight := student.Weight(*population, podPercents); weight > maxWeight {
           maxStudent = student
           maxIndex = k
-          glog.CheckGt(float64(len(maxStudent.Stripped)), 0, "Student is empty 1")
+          maxWeight = weight
+          glog.CheckGt(float64(len(maxStudent.Stripped)), 0, "Student is empty")
         }
       }
-      addPercents(&maxStudent, (*pods)[i], podPercents)
       pm.addToPod(maxStudent, maxIndex, i, podOffset, &(*pods)[i], &addedStudents, students)
+      podPercents = PercentsOf((*pods)[i])
     }
   }
 
@@ -150,17 +152,11 @@ func (pm *PodManager) makePods(students *Students, pods *[]Students, population 
 func PercentsOf(students Students) Percents {
   percents := make(Percents)
   for _, s := range students {
-    addPercents(&s, students, percents)
-  }
-  return percents
-}
-
-func addPercents(s *Student, students Students, percents Percents) {
-  if len(students) != 0 {
     for field := range s.weightedFields() {
       percents[field] += 1.0 / Percent(len(students))
     }
   }
+  return percents
 }
 
 func (pm *PodManager) addToPod(s Student, index int, podIndex int, podOffset int, pod *Students, addedStudents *Students, students *Students) {

@@ -23,10 +23,12 @@ func TestWeight(t *testing.T) {
     "English", ""}, Stripped: nil}
   s.Strip()
 
+  const expectedWeight = (0.3 - 0.05) + (0.5 - 0.7) + (0.7 - 0.7)
+  const floatTolerance = 1e-5
+
   weight := s.Weight(population, pod)
   t.Log("Weight:", weight)
-  const expectedWeight = (0.3 - 0.05) + (0.5 - 0.7) + (0.7 - 0.7)
-  if mvhspods.Abs(expectedWeight-weight) > 1e-5 {
+  if mvhspods.Abs(expectedWeight-weight) > floatTolerance {
     t.Error("Weight does not match expected weight of", expectedWeight)
   }
 }
@@ -152,7 +154,6 @@ func initPm() *mvhspods.PodManager {
   pm.MakePods(mvhspods.DefaultPodSize)
   return pm
 }
-
 
 func TestMain(m *testing.M) {
   glog.SetSeverity(glog.InfoSeverity)
