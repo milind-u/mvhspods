@@ -13,6 +13,8 @@ const numStudents = 600
 
 var pm *mvhspods.PodManager
 
+var students mvhspods.Students
+
 // Tests that the student weight function is working correctly
 func TestWeight(t *testing.T) {
   population := mvhspods.Percents{{1, "graham"}: 0.3,
@@ -146,8 +148,18 @@ func TestPodStats(t *testing.T) {
   }
 }
 
+func TestOrder(t *testing.T) {
+  pm2 := initPm()
+  pm2.WritePodsToString(false)
+  for i := range pm2.Students {
+    if pm2.Students[i].Stripped[0] != students[i].Stripped[0] {
+      t.Fatal("Output students not in same order as input", i)
+    }
+  }
+}
+
 func initPm() *mvhspods.PodManager {
-  students := GenerateStudents(numStudents)
+  students = GenerateStudents(numStudents)
   mvhspods.WriteStudents("students.csv", Headers, students)
 
   pm := &mvhspods.PodManager{Headers: Headers, PodData: mvhspods.PodData{Students: students}}
