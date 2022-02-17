@@ -204,18 +204,18 @@ func (pm *PodManager) writePodsWithWriter(writer io.Writer, sorted bool) {
 
   // Write pod percents
   numCols := len(pm.Students[0].Fields)
-  pm.writePercents(w, pm.Population(), 0, numCols)
+  pm.WritePercents(w, pm.Population(), 0, numCols)
   for i, pod := range pm.Eld.pods {
-    pm.writePercents(w, PercentsOf(pod), i+1, numCols)
+    pm.WritePercents(w, PercentsOf(pod), i+1, numCols)
   }
   for i, pod := range pm.pods {
-    pm.writePercents(w, PercentsOf(pod), i+1+len(pm.Eld.pods), numCols)
+    pm.WritePercents(w, PercentsOf(pod), i+1+len(pm.Eld.pods), numCols)
   }
 
   w.Flush()
 }
 
-func (pm *PodManager) writePercents(w *csv.Writer, percents Percents, podNum, numCols int) {
+func (pm *PodManager) WritePercents(w *csv.Writer, percents Percents, podNum, numCols int) {
   output := make([]strings.Builder, numCols)
   for f, p := range percents {
     output[f.Index].WriteString(fmt.Sprintf("%v: %v, ", f.Name, p))

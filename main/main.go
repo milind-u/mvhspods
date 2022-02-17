@@ -1,7 +1,9 @@
 package main
 
 import (
+  "encoding/csv"
   "flag"
+  "strings"
   "syscall/js"
 
   "mvhspods"
@@ -14,12 +16,30 @@ func webMain() js.Func {
   return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
     pods := ""
     if len(args) == 1 {
-      csv := args[0].String()
+      students := args[0].String()
 
       var pm mvhspods.PodManager
-      pm.ReadStudentsFromString(csv)
+      pm.ReadStudentsFromString(students)
       pm.MakePods(mvhspods.DefaultPodSize)
       pods = pm.WritePodsToString(false)
+    } else {
+      glog.Errorln("Expected 1 arg (csv), but got", len(args))
+    }
+    return pods
+  })
+}
+
+func webPodPercents() js.Func {
+  return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+    pods := ""
+    if len(args) == 1 {
+      pod := args[0].String()
+
+      var pm mvhspods.PodManager
+      pm.ReadStudentsFromString(pod)
+      var b strings.Builder
+      pm.WritePercents(csv.NewWriter(&b), mvhspods.PercentsOf(pm.Students), 0, len(pm.Students[0].Fields))
+      pods = b.String()
     } else {
       glog.Errorln("Expected 1 arg (csv), but got", len(args))
     }
@@ -42,6 +62,7 @@ func main() {
 
   if *web {
     js.Global().Set("makePods", webMain())
+    js.Global().Set("percentsOf", webPodPercents())
     // Keep the program running
     <-make(chan interface{})
   } else if *studentsToGenerate != 0 {
