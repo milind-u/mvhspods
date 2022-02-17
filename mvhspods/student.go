@@ -23,8 +23,10 @@ const EldStr = "eld1/2"
 const advEldStr = "eld3/4"
 
 type Student struct {
-  Fields   []string
-  Stripped []string
+  Fields              []string
+  Stripped            []string
+  groupMemberships    []string
+  groupMembershipsSet bool
 }
 
 type Students []Student
@@ -35,10 +37,14 @@ type Field struct {
 }
 
 func (s *Student) weightedFields() chan Field {
-  c := make(chan Field, len(weightedFields)+len(s.groupMemberships())-1)
+  lenOffset := 0
+  if s.groupMembershipsSet {
+    lenOffset = len(s.groupMemberships) - 1
+  }
+  c := make(chan Field, len(weightedFields)+lenOffset)
   for _, index := range weightedFields {
-    if index == GroupMembershipsIndex && s.Stripped[index] != "" {
-      for _, group := range s.groupMemberships() {
+    if index == GroupMembershipsIndex && s.groupMembershipsSet && s.Stripped[index] != "" {
+      for _, group := range s.groupMemberships {
         c <- Field{index, group}
       }
     } else {
@@ -49,10 +55,6 @@ func (s *Student) weightedFields() chan Field {
   }
   close(c)
   return c
-}
-
-func (s *Student) groupMemberships() []string {
-  return strings.Split(s.Stripped[GroupMembershipsIndex], ",")
 }
 
 func computeDelta(f Field, population Percents, pod Percents) Percent {
@@ -78,9 +80,13 @@ func (s *Student) Strip() {
   for field := range s.weightedFields() {
     s.Stripped[field.Index] = strings.ToLower(strings.ReplaceAll(s.Stripped[field.Index], " ", ""))
   }
+
   // Trim the ELD group number to make all ELD levels the same group
   s.Stripped[GroupMembershipsIndex] = eldRegexp1.ReplaceAllString(s.Stripped[GroupMembershipsIndex], EldStr)
   s.Stripped[GroupMembershipsIndex] = eldRegexp2.ReplaceAllString(s.Stripped[GroupMembershipsIndex], advEldStr)
+
+  s.groupMemberships = strings.Split(s.Stripped[GroupMembershipsIndex], ",")
+  s.groupMembershipsSet = true
 }
 
 func (s Students) String() string {
