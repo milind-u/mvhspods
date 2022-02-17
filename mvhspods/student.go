@@ -2,6 +2,7 @@ package mvhspods
 
 import (
   "fmt"
+  "regexp"
   "strings"
 
   "github.com/milind-u/glog"
@@ -19,6 +20,7 @@ const GroupMembershipsIndex = 8
 var weightedFields = [...]int{schoolIndex, genderIndex, languageIndex, GroupMembershipsIndex}
 
 const EldStr = "eld1/2"
+const advEldStr = "eld3/4"
 
 type Student struct {
   Fields   []string
@@ -33,24 +35,40 @@ type Field struct {
 }
 
 func (s *Student) weightedFields() chan Field {
-  c := make(chan Field, len(weightedFields))
+  c := make(chan Field, len(weightedFields)+len(s.groupMemberships())-1)
   for _, index := range weightedFields {
-    if index < len(s.Stripped) && s.Stripped[index] != "" {
-      c <- Field{index, s.Stripped[index]}
+    if index == GroupMembershipsIndex && s.Stripped[index] != "" {
+      for _, group := range s.groupMemberships() {
+        c <- Field{index, group}
+      }
+    } else {
+      if index < len(s.Stripped) && s.Stripped[index] != "" {
+        c <- Field{index, s.Stripped[index]}
+      }
     }
   }
   close(c)
   return c
 }
 
+func (s *Student) groupMemberships() []string {
+  return strings.Split(s.Stripped[GroupMembershipsIndex], ",")
+}
+
+func computeDelta(f Field, population Percents, pod Percents) Percent {
+  return population[f] - pod[f]
+}
+
 func (s *Student) Weight(population Percents, pod Percents) Percent {
   weight := Percent(0)
   for field := range s.weightedFields() {
-    delta := population[field] - pod[field]
-    weight += delta
+    weight += computeDelta(field, population, pod)
   }
   return weight
 }
+
+var eldRegexp1 = regexp.MustCompile(`^eld(1|2)$`)
+var eldRegexp2 = regexp.MustCompile(`^eld(3|4)$`)
 
 func (s *Student) Strip() {
   s.Stripped = make([]string, len(s.Fields))
@@ -61,13 +79,8 @@ func (s *Student) Strip() {
     s.Stripped[field.Index] = strings.ToLower(strings.ReplaceAll(s.Stripped[field.Index], " ", ""))
   }
   // Trim the ELD group number to make all ELD levels the same group
-  if groupMemberships := s.Stripped[GroupMembershipsIndex]; strings.Contains(groupMemberships, "eld") {
-    if groupMemberships == "eld1" || groupMemberships == "eld2" {
-      s.Stripped[GroupMembershipsIndex] = EldStr
-    } else {
-      s.Stripped[GroupMembershipsIndex] = "eld3/4"
-    }
-  }
+  s.Stripped[GroupMembershipsIndex] = eldRegexp1.ReplaceAllString(s.Stripped[GroupMembershipsIndex], EldStr)
+  s.Stripped[GroupMembershipsIndex] = eldRegexp2.ReplaceAllString(s.Stripped[GroupMembershipsIndex], advEldStr)
 }
 
 func (s Students) String() string {

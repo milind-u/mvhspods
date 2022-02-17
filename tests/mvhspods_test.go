@@ -13,8 +13,6 @@ const numStudents = 600
 
 var pm *mvhspods.PodManager
 
-var students mvhspods.Students
-
 // Tests that the student weight function is working correctly
 func TestWeight(t *testing.T) {
   population := mvhspods.Percents{{1, "graham"}: 0.3,
@@ -120,46 +118,58 @@ func TestEld(t *testing.T) {
 // Tests the stats of random pods and checks if groups are represented in pods similarly
 // to how they are in the population
 func TestPodStats(t *testing.T) {
-  for _, pd := range []*mvhspods.PodData{&pm.PodData, &pm.Eld} {
-    tolerances := Stats{
-      maxErr:  0.5,
-      avgErr:  0.11,
-      badErrs: int(float64(len(pd.Students)) / 4),
-    }
+  tolerances := [...]Stats{
+    // Normal
+    {
+      maxErr:  0.2,
+      avgErr:  0.02,
+      badErrs: 10,
+    },
+    // ELD
+    {
+      maxErr:  0.15,
+      avgErr:  0.035,
+      badErrs: 2,
+    },
+  }
 
-    stats := PodStatsWithTolerance(pd, tolerances.maxErr)
+  for i, pd := range []*mvhspods.PodData{&pm.PodData, &pm.Eld} {
+    tolerance := tolerances[i]
+    stats := PodStatsWithTolerance(pd, tolerance.maxErr)
     label := "Stats:"
     if pd == &pm.Eld {
       label = "ELD stats:"
     }
     t.Log(label, stats)
 
-    if stats.maxErr > tolerances.maxErr {
-      t.Error("Percent error max exceeds tolerance of", tolerances.maxErr)
+    if stats.maxErr > tolerance.maxErr {
+      t.Error("Percent error max exceeds tolerance of", tolerance.maxErr)
     }
 
-    if stats.avgErr > tolerances.avgErr {
-      t.Error("Average error exceeds tolerance of", tolerances.avgErr)
+    if stats.avgErr > tolerance.avgErr {
+      t.Error("Average error exceeds tolerance of", tolerance.avgErr)
     }
 
-    if stats.badErrs > tolerances.badErrs {
-      t.Error("Bad error count exceeds tolerance of", tolerances.badErrs)
+    if stats.badErrs > tolerance.badErrs {
+      t.Error("Bad error count exceeds tolerance of", tolerance.badErrs)
     }
   }
 }
 
 func TestOrder(t *testing.T) {
+  students := GenerateStudents(numStudents)
   pm2 := initPm()
   pm2.WritePodsToString(false)
   for i := range pm2.Students {
     if pm2.Students[i].Stripped[0] != students[i].Stripped[0] {
-      t.Fatal("Output students not in same order as input", i)
+      t.Fatal("Output students not in same order as input", i, "\n",
+        pm2.Students[i].Stripped, students[i].Stripped)
     }
   }
 }
 
 func initPm() *mvhspods.PodManager {
-  students = GenerateStudents(numStudents)
+  students := GenerateStudents(numStudents)
   mvhspods.WriteStudents("students.csv", Headers, students)
 
   pm := &mvhspods.PodManager{Headers: Headers, PodData: mvhspods.PodData{Students: students}}

@@ -12,7 +12,7 @@ import (
 // (ex. Spanish, Female, Band) in a certain pod from the percent of that group in the full
 // student population
 
-const badErrThreshold = 0.2
+const badErrThreshold = 0.1
 
 type Stats struct {
   avgErr mvhspods.Percent

@@ -48,8 +48,9 @@ var categories = [...][]group{{{"Graham", 0.3},
   {{"", 0.4},
     {"ELD 1", 0.05},
     {"ELD 2", 0.05},
-    {"ELD 3", 0.1},
-    {"ELD 4", 0.1},
+    {"ELD 3", 0.05},
+    {"ELD 4", 0.05},
+    {"ELD 3, AVID", 0.1},
     {"AVID", 0.2},
     {"Band", 0.1}}}
 
@@ -121,6 +122,7 @@ func GenerateStudents(numStudents int) mvhspods.Students {
       }
     }
     students[i].Strip()
+    students[i].Stripped = append(students[i].Stripped, strconv.Itoa(i))
   }
 
   return students
