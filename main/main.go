@@ -37,8 +37,8 @@ func webPodPercents() js.Func {
 
       var pm mvhspods.PodManager
       pm.ReadStudentsFromString(pod)
-      var b strings.Builder
-      pm.WritePercents(csv.NewWriter(&b), mvhspods.PercentsOf(pm.Students), 0, len(pm.Students[0].Fields))
+      b := new(strings.Builder)
+      pm.WritePercents(csv.NewWriter(b), mvhspods.PercentsOf(pm.Students), 0, len(pm.Students[0].Fields))
       pods = b.String()
     } else {
       glog.Errorln("Expected 1 arg (csv), but got", len(args))

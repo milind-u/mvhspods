@@ -233,6 +233,7 @@ func (pm *PodManager) WritePercents(w *csv.Writer, percents Percents, podNum, nu
   }
 
   glog.FatalIf(w.Write(strs))
+  w.Flush()
 }
 
 func WriteStudents(path string, headers []string, students Students) {
