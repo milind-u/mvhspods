@@ -1,5 +1,6 @@
 # Mvhspods
-App for smart-shuffling 9th grade students into pod groups for orientation 
+App for smart-shuffling 9th grade students into pod groups for orientation
+This is the "backend" used by Zephyr and Wyatt's web app for creating pods.
 
 ### - [Overview](#overview) 
 ### - [Validation](#validation)
