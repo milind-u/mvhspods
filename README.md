@@ -11,7 +11,7 @@ This is the "backend" used by Zephyr and Wyatt's web app for creating pods.
 ### Goal: put students in pods so that each group (ex. Spanish, Graham, Band) is represented in each pod as closely to the percent that it is represented in the population
 
 ## Overview
-For example, suppose the population had the following diversity: `Gender: female: 45%, male: 45%, nob-binary: 10%`, `School: graham: 30%, crittenden: 30%, blach: 40%`.
+For example, suppose the population had the following diversity: `Gender: female: 45%, male: 45%, non-binary: 10%`, `School: graham: 30%, crittenden: 30%, blach: 40%`.
 
 Our algorithm would try to make it so that in each pod, each of these groups has the same diversity (`female: 45%, ..., blach: 40%`).
 
