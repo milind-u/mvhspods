@@ -19,6 +19,7 @@ It would make sure that all of these groups are represented as close to the popu
 
 ## Validation
 To see how good our algorithm performs, we generate a sample dataset of 600 students into given percentages of each category (gender, school, group memberships, ...).
+
 After our algorithm makes pods, we check how close each group in each pod was represented as it is in the population and calculate the errors.
 - An error is the absolute difference between the percent of a group in a pod vs it's percent in the population
     - Ex. if the population was 50% male and a pod was 45% male, the error would be 5%
