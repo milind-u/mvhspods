@@ -33,6 +33,7 @@ In actual pods, gender is the most visible aspect of diversity, so we thought ab
 
 ELD 1 and 2 students are not proficient in English, so they are put in separate pods.
 The code treats the percentages in their population separately, and still makes their pods as diverse as possible using the same metrics as the other pods.
+ELD 3 and 4 students are integrated with the other pods because they are sufficiently proficient in English.
 
 
 ## Algorithm (technical overview)
