@@ -69,8 +69,8 @@ func (s *Student) Weight(population Percents, pod Percents) Percent {
   return weight
 }
 
-var eldRegexp1 = regexp.MustCompile(`^eld(1|2)$`)
-var eldRegexp2 = regexp.MustCompile(`^eld(3|4)$`)
+var eldRegexp1 = regexp.MustCompile(`eld(1|2)`)
+var eldRegexp2 = regexp.MustCompile(`eld(3|4)`)
 
 func (s *Student) Strip() {
   s.Stripped = make([]string, len(s.Fields))

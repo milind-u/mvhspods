@@ -27,8 +27,7 @@ After our algorithm makes pods, we check how close each group in each pod was re
 - We find the average of all errors across every group (male, female, graham, spanish, eld, ...) in every pod
     - ### The average error in our generated dataset is 2%
     - This means that on average, a group such as male or graham would have a diversity in every pod that is only 2% away from the percent in the population!
-- ### The highest error is less than 20%
-- ### There are errors for every single group in all of the ~60 pods, and less than 10 were worse than 10%
+- ### There are errors for every single group in all of the ~60 pods, and only around 10 were worse than 10%
 
 ## Nuances
 In actual pods, gender is the most visible aspect of diversity, so we thought about increasing the weight of gender in making pods. However given the tiny error, we decided this was not needed and we could leave the algorithm at its pure and simple form. 

@@ -91,7 +91,9 @@ func (pm *PodManager) MakePods(podSize int) {
     }
   }
 
-  pm.makePods(&pm.Eld.Students, &pm.Eld.pods, &pm.Eld.population, podSize, true)
+  if pm.Eld.Students.Len() > 0 {
+    pm.makePods(&pm.Eld.Students, &pm.Eld.pods, &pm.Eld.population, podSize, true)
+  }
   pm.makePods(&pm.Students, &pm.pods, &pm.population, podSize, false)
 }
 

@@ -2,6 +2,7 @@ package tests
 
 import (
   "os"
+  "strings"
   "testing"
 
   "mvhspods"
@@ -66,13 +67,12 @@ func TestAlphabeticOrder(t *testing.T) {
 func TestFewStudents(t *testing.T) {
   // Test with less ELD students than podSize
   students := GenerateStudents(numStudents)
-
   pm2 := &mvhspods.PodManager{Headers: Headers, PodData: mvhspods.PodData{Students: students}}
 
   const smallPodSize = mvhspods.DefaultPodSize/2 - 1
   eldCount := 0
   for i := 0; i < len(pm2.Students); i++ {
-    if pm2.Students[i].Stripped[mvhspods.GroupMembershipsIndex] == mvhspods.EldStr {
+    if strings.Contains(pm2.Students[i].Stripped[mvhspods.GroupMembershipsIndex], mvhspods.EldStr) {
       eldCount++
     }
   }
@@ -81,7 +81,7 @@ func TestFewStudents(t *testing.T) {
   }
   removed := 0
   for i := 0; i < len(pm2.Students); i++ {
-    if pm2.Students[i].Stripped[mvhspods.GroupMembershipsIndex] == mvhspods.EldStr {
+    if strings.Contains(pm2.Students[i].Stripped[mvhspods.GroupMembershipsIndex], mvhspods.EldStr) {
       pm2.Remove(i)
       i--
       removed++
@@ -101,6 +101,36 @@ func TestFewStudents(t *testing.T) {
   }
 }
 
+func TestNoEld(t *testing.T) {
+  // Test with no ELD students
+  students := GenerateStudents(numStudents)
+  pm2 := &mvhspods.PodManager{Headers: Headers, PodData: mvhspods.PodData{Students: students}}
+
+  for i := 0; i < len(pm2.Students); i++ {
+    if strings.Contains(pm2.Students[i].Stripped[mvhspods.GroupMembershipsIndex], mvhspods.EldStr) {
+      pm2.Students.Remove(i)
+      i--
+    }
+  }
+
+  pm2.MakePods(mvhspods.DefaultPodSize)
+
+  studentCount := 0
+  for _, pod := range pm2.Pods() {
+    studentCount += pod.Len()
+    if pod.Len() < mvhspods.DefaultPodSize || pod.Len() > mvhspods.DefaultPodSize+2 {
+      t.Error("Invalid pod size:", pod.Len())
+    }
+  }
+
+  if studentCount != pm.Students.Len() {
+    t.Error("Have not enough normal students: expected", pm.Students.Len(), "but have", studentCount)
+  }
+  if len(pm2.Eld.Pods()) != 0 {
+    t.Error("Expected 0 ELD pods but have", len(pm2.Eld.Pods()))
+  }
+}
+
 func TestEld(t *testing.T) {
   for _, s := range pm.Eld.Students {
     if groups := s.Stripped[mvhspods.GroupMembershipsIndex]; groups != mvhspods.EldStr {
@@ -109,7 +139,7 @@ func TestEld(t *testing.T) {
   }
 
   for _, s := range pm.Students {
-    if groups := s.Stripped[mvhspods.GroupMembershipsIndex]; groups == mvhspods.EldStr {
+    if groups := s.Stripped[mvhspods.GroupMembershipsIndex]; strings.Contains(groups, mvhspods.EldStr) {
       t.Error("This student is ELD:", s)
     }
   }
@@ -121,13 +151,13 @@ func TestPodStats(t *testing.T) {
   tolerances := [...]Stats{
     // Normal
     {
-      maxErr:  0.2,
-      avgErr:  0.02,
-      badErrs: 10,
+      maxErr:  0.35,
+      avgErr:  0.021,
+      badErrs: 11,
     },
     // ELD
     {
-      maxErr:  0.15,
+      maxErr:  0.35,
       avgErr:  0.035,
       badErrs: 2,
     },
