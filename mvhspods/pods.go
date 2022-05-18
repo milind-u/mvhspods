@@ -7,7 +7,6 @@ import (
   "io"
   "math"
   "os"
-  "sort"
   "strconv"
   "strings"
 
@@ -72,7 +71,7 @@ func (pm *PodManager) readStudents(reader io.Reader, sampleData bool) {
       if sampleData {
         s.Fields = s.Fields[:len(s.Fields)-1]
       }
-      s.Strip()
+      s.Strip(pm.Headers)
       s.Stripped = append(s.Stripped, strconv.Itoa(index))
       index++
       pm.Students = append(pm.Students, s)
@@ -84,7 +83,7 @@ func (pm *PodManager) readStudents(reader io.Reader, sampleData bool) {
 func (pm *PodManager) MakePods(podSize int) {
   for i := 0; i < len(pm.Students); i++ {
     student := pm.Students[i]
-    if groupMemberships := student.Stripped[GroupMembershipsIndex]; groupMemberships == EldStr {
+    if groupMemberships := student.GroupMemberships(); strings.Contains(groupMemberships, EldStr) {
       pm.Eld.Students = append(pm.Eld.Students, student)
       pm.Students.Remove(i)
       i--
@@ -171,37 +170,31 @@ func (pm *PodManager) addToPod(s Student, index int, podIndex int, podOffset int
   *addedStudents = append(*addedStudents, s)
 }
 
-func (pm *PodManager) WritePods(path string, sorted bool) {
+func (pm *PodManager) WritePods(path string) {
   f, err := os.Create(path)
   glog.FatalIf(err)
-  pm.writePodsWithWriter(f, sorted)
+  pm.writePodsWithWriter(f)
 }
 
-func (pm *PodManager) WritePodsToString(sorted bool) string {
+func (pm *PodManager) WritePodsToString() string {
   b := new(strings.Builder)
-  pm.writePodsWithWriter(b, sorted)
+  pm.writePodsWithWriter(b)
   return b.String()
 }
 
-func (pm *PodManager) writePodsWithWriter(writer io.Writer, sorted bool) {
+func (pm *PodManager) writePodsWithWriter(writer io.Writer) {
   w := csv.NewWriter(writer)
   glog.FatalIf(w.Write(pm.Headers))
 
-  if sorted {
-    // Combine the eld students with the others and then sort
-    pm.Students = append(pm.Students, pm.Eld.Students...)
-    sort.Sort(pm.Students)
-  } else {
-    students := make(Students, len(pm.Students)+len(pm.Eld.Students))
-    for _, studentGroup := range [...]Students{pm.Eld.Students, pm.Students} {
-      for _, s := range studentGroup {
-        index, err := strconv.Atoi(s.Stripped[len(s.Stripped)-1])
-        glog.FatalIf(err)
-        students[index] = s
-      }
+  students := make(Students, len(pm.Students)+len(pm.Eld.Students))
+  for _, studentGroup := range [...]Students{pm.Eld.Students, pm.Students} {
+    for _, s := range studentGroup {
+      index, err := strconv.Atoi(s.Stripped[len(s.Stripped)-1])
+      glog.FatalIf(err)
+      students[index] = s
     }
-    pm.Students = students
   }
+  pm.Students = students
   writeStudentsWithWriter(w, pm.Students)
 
   // Write pod percents

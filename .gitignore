@@ -3,3 +3,6 @@
 
 # GoLand
 **/.idea/
+
+# Our generated files
+**/*.csv

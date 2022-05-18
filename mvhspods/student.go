@@ -8,16 +8,20 @@ import (
   "github.com/milind-u/glog"
 )
 
-const idIndex = 0
-const schoolIndex = 1
-const lastNameIndex = 2
-const firstNameIndex = 3
-const genderIndex = 4
-const languageIndex = 7
-const GroupMembershipsIndex = 8
+type Field struct {
+  Index int
+  Name  string
+}
 
-// Indices of the student Fields that are weighted
-var weightedFields = [...]int{schoolIndex, genderIndex, languageIndex, GroupMembershipsIndex}
+// Indices in stripped array
+var gender = Field{0, "Gender"}
+var school = Field{1, "LastSchl"}
+var language = Field{2, "Description_HL"}
+var groupMemberships = Field{3, "GroupMemberships?"}
+
+var weightedFields = map[string]int{gender.Name: gender.Index,
+  school.Name: school.Index, language.Name: language.Index,
+  groupMemberships.Name: groupMemberships.Index}
 
 const EldStr = "eld1/2"
 const advEldStr = "eld3/4"
@@ -31,9 +35,20 @@ type Student struct {
 
 type Students []Student
 
-type Field struct {
-  Index int
-  Name  string
+func (s *Student) Gender() string {
+  return s.Stripped[gender.Index]
+}
+
+func (s *Student) School() string {
+  return s.Stripped[school.Index]
+}
+
+func (s *Student) Language() string {
+  return s.Stripped[language.Index]
+}
+
+func (s *Student) GroupMemberships() string {
+  return s.Stripped[groupMemberships.Index]
 }
 
 func (s *Student) weightedFields() chan Field {
@@ -42,14 +57,14 @@ func (s *Student) weightedFields() chan Field {
     lenOffset = len(s.groupMemberships) - 1
   }
   c := make(chan Field, len(weightedFields)+lenOffset)
-  for _, index := range weightedFields {
-    if index == GroupMembershipsIndex && s.groupMembershipsSet && s.Stripped[index] != "" {
+  for i := 0; i < len(weightedFields); i++ {
+    if i == groupMemberships.Index && s.groupMembershipsSet && s.GroupMemberships() != "" {
       for _, group := range s.groupMemberships {
-        c <- Field{index, group}
+        c <- Field{i, group}
       }
     } else {
-      if index < len(s.Stripped) && s.Stripped[index] != "" {
-        c <- Field{index, s.Stripped[index]}
+      if i < len(s.Stripped) && s.Stripped[i] != "" {
+        c <- Field{i, s.Stripped[i]}
       }
     }
   }
@@ -72,20 +87,21 @@ func (s *Student) Weight(population Percents, pod Percents) Percent {
 var eldRegexp1 = regexp.MustCompile(`eld(1|2)`)
 var eldRegexp2 = regexp.MustCompile(`eld(3|4)`)
 
-func (s *Student) Strip() {
-  s.Stripped = make([]string, len(s.Fields))
-  copy(s.Stripped, s.Fields)
+func (s *Student) Strip(headers []string) {
+  s.Stripped = make([]string, len(weightedFields))
   // Remove whitespace from Fields, and make everything lowercase
   // in case there were capitalization/spacing inconsistencies.
-  for field := range s.weightedFields() {
-    s.Stripped[field.Index] = strings.ToLower(strings.ReplaceAll(s.Stripped[field.Index], " ", ""))
+  for i, field := range s.Fields {
+    if index, ok := weightedFields[headers[i]]; ok {
+      s.Stripped[index] = strings.ToLower(strings.ReplaceAll(field, " ", ""))
+    }
   }
 
   // Trim the ELD group number to make all ELD levels the same group
-  s.Stripped[GroupMembershipsIndex] = eldRegexp1.ReplaceAllString(s.Stripped[GroupMembershipsIndex], EldStr)
-  s.Stripped[GroupMembershipsIndex] = eldRegexp2.ReplaceAllString(s.Stripped[GroupMembershipsIndex], advEldStr)
+  s.Stripped[groupMemberships.Index] = eldRegexp1.ReplaceAllString(s.GroupMemberships(), EldStr)
+  s.Stripped[groupMemberships.Index] = eldRegexp2.ReplaceAllString(s.GroupMemberships(), advEldStr)
 
-  s.groupMemberships = strings.Split(s.Stripped[GroupMembershipsIndex], ",")
+  s.groupMemberships = strings.Split(s.GroupMemberships(), ",")
   s.groupMembershipsSet = true
 }
 
@@ -100,21 +116,6 @@ func (s Students) String() string {
 
 func (s Students) Len() int {
   return len(s)
-}
-
-func (s Students) Swap(i, j int) {
-  s[i], s[j] = s[j], s[i]
-}
-
-func (s Students) Less(i, j int) bool {
-  diff := strings.Compare(s[i].Stripped[lastNameIndex], s[j].Stripped[lastNameIndex])
-  if diff == 0 {
-    diff = strings.Compare(s[i].Stripped[firstNameIndex], s[j].Stripped[firstNameIndex])
-    if diff == 0 {
-      diff = strings.Compare(s[i].Stripped[idIndex], s[j].Stripped[idIndex])
-    }
-  }
-  return diff < 0
 }
 
 func (s *Students) Remove(i int) {

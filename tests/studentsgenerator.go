@@ -121,7 +121,7 @@ func GenerateStudents(numStudents int) mvhspods.Students {
         log.Fatalln("Unknown field type")
       }
     }
-    students[i].Strip()
+    students[i].Strip(Headers)
     students[i].Stripped = append(students[i].Stripped, strconv.Itoa(i))
   }
 

@@ -17,12 +17,12 @@ var pm *mvhspods.PodManager
 // Tests that the student weight function is working correctly
 func TestWeight(t *testing.T) {
   population := mvhspods.Percents{{1, "graham"}: 0.3,
-    {4, "male"}: 0.5, {7, "english"}: 0.7}
+    {0, "male"}: 0.5, {2, "english"}: 0.7}
   pod := mvhspods.Percents{{1, "graham"}: 0.05,
-    {4, "male"}: 0.7, {7, "english"}: 0.7}
+    {0, "male"}: 0.7, {2, "english"}: 0.7}
   s := mvhspods.Student{Fields: []string{"100012345", "Graham", "Bar", "Foo", "Male", "Parent", "6501231234",
     "English", ""}, Stripped: nil}
-  s.Strip()
+  s.Strip(pm.Headers)
 
   const expectedWeight = (0.3 - 0.05) + (0.5 - 0.7) + (0.7 - 0.7)
   const floatTolerance = 1e-5
@@ -50,20 +50,6 @@ func TestPodSize(t *testing.T) {
   }
 }
 
-func TestAlphabeticOrder(t *testing.T) {
-  pm2 := initPm()
-  pm2.WritePods("test.csv", true)
-  pm2.Students = nil
-  pm2.ReadStudents("test.csv", false)
-
-  // make sure that the names are in sorted order
-  for i := 0; i < len(pm2.Students)-1; i++ {
-    if !pm2.Students.Less(i, i+1) {
-      t.Error("The sort didn't work.")
-    }
-  }
-}
-
 func TestFewStudents(t *testing.T) {
   // Test with less ELD students than podSize
   students := GenerateStudents(numStudents)
@@ -72,7 +58,7 @@ func TestFewStudents(t *testing.T) {
   const smallPodSize = mvhspods.DefaultPodSize/2 - 1
   eldCount := 0
   for i := 0; i < len(pm2.Students); i++ {
-    if strings.Contains(pm2.Students[i].Stripped[mvhspods.GroupMembershipsIndex], mvhspods.EldStr) {
+    if strings.Contains(pm2.Students[i].GroupMemberships(), mvhspods.EldStr) {
       eldCount++
     }
   }
@@ -81,7 +67,7 @@ func TestFewStudents(t *testing.T) {
   }
   removed := 0
   for i := 0; i < len(pm2.Students); i++ {
-    if strings.Contains(pm2.Students[i].Stripped[mvhspods.GroupMembershipsIndex], mvhspods.EldStr) {
+    if strings.Contains(pm2.Students[i].GroupMemberships(), mvhspods.EldStr) {
       pm2.Remove(i)
       i--
       removed++
@@ -107,7 +93,7 @@ func TestNoEld(t *testing.T) {
   pm2 := &mvhspods.PodManager{Headers: Headers, PodData: mvhspods.PodData{Students: students}}
 
   for i := 0; i < len(pm2.Students); i++ {
-    if strings.Contains(pm2.Students[i].Stripped[mvhspods.GroupMembershipsIndex], mvhspods.EldStr) {
+    if strings.Contains(pm2.Students[i].GroupMemberships(), mvhspods.EldStr) {
       pm2.Students.Remove(i)
       i--
     }
@@ -133,13 +119,13 @@ func TestNoEld(t *testing.T) {
 
 func TestEld(t *testing.T) {
   for _, s := range pm.Eld.Students {
-    if groups := s.Stripped[mvhspods.GroupMembershipsIndex]; groups != mvhspods.EldStr {
+    if !strings.Contains(s.GroupMemberships(), mvhspods.EldStr) {
       t.Error("This student is not ELD:", s)
     }
   }
 
   for _, s := range pm.Students {
-    if groups := s.Stripped[mvhspods.GroupMembershipsIndex]; strings.Contains(groups, mvhspods.EldStr) {
+    if strings.Contains(s.GroupMemberships(), mvhspods.EldStr) {
       t.Error("This student is ELD:", s)
     }
   }
@@ -189,7 +175,7 @@ func TestPodStats(t *testing.T) {
 func TestOrder(t *testing.T) {
   students := GenerateStudents(numStudents)
   pm2 := initPm()
-  pm2.WritePodsToString(false)
+  pm2.WritePodsToString()
   for i := range pm2.Students {
     if pm2.Students[i].Stripped[0] != students[i].Stripped[0] {
       t.Fatal("Output students not in same order as input", i, "\n",
