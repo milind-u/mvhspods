@@ -87,33 +87,52 @@ func TestFewStudents(t *testing.T) {
   }
 }
 
-func TestNoEld(t *testing.T) {
-  // Test with no ELD students
-  students := GenerateStudents(numStudents)
-  pm2 := &mvhspods.PodManager{Headers: Headers, PodData: mvhspods.PodData{Students: students}}
+// Test with no ELD students and no regular students
+func TestNoStudents(t *testing.T) {
+  for _, eld := range [...]bool{true, false} {
+    students := GenerateStudents(numStudents)
+    pm2 := &mvhspods.PodManager{Headers: Headers, PodData: mvhspods.PodData{Students: students}}
 
-  for i := 0; i < len(pm2.Students); i++ {
-    if strings.Contains(pm2.Students[i].GroupMemberships(), mvhspods.EldStr) {
-      pm2.Students.Remove(i)
-      i--
+    for i := 0; i < len(pm2.Students); i++ {
+      if strings.Contains(pm2.Students[i].GroupMemberships(), mvhspods.EldStr) == eld {
+        pm2.Students.Remove(i)
+        i--
+      }
     }
-  }
 
-  pm2.MakePods(mvhspods.DefaultPodSize)
+    pm2.MakePods(mvhspods.DefaultPodSize)
 
-  studentCount := 0
-  for _, pod := range pm2.Pods() {
-    studentCount += pod.Len()
-    if pod.Len() < mvhspods.DefaultPodSize || pod.Len() > mvhspods.DefaultPodSize+2 {
-      t.Error("Invalid pod size:", pod.Len())
+    studentCount := 0
+
+    pods := pm2.Pods()
+    if !eld {
+      pods = pm2.Eld.Pods()
     }
-  }
 
-  if studentCount != pm.Students.Len() {
-    t.Error("Have not enough normal students: expected", pm.Students.Len(), "but have", studentCount)
-  }
-  if len(pm2.Eld.Pods()) != 0 {
-    t.Error("Expected 0 ELD pods but have", len(pm2.Eld.Pods()))
+    for _, pod := range pods {
+      studentCount += pod.Len()
+      if pod.Len() < mvhspods.DefaultPodSize || pod.Len() > mvhspods.DefaultPodSize+2 {
+        t.Error("Invalid pod size:", pod.Len(), ", eld:", eld)
+      }
+    }
+
+    numStudents := pm.Students.Len()
+    if !eld {
+      numStudents = pm.Eld.Students.Len()
+    }
+
+    if studentCount != numStudents {
+      t.Error("Have not enough students: expected", numStudents, "but have", studentCount,
+        ", eld:", eld)
+    }
+
+    pods = pm2.Eld.Pods()
+    if !eld {
+      pods = pm2.Pods()
+    }
+    if len(pods) != 0 {
+      t.Error("Expected 0 pods but have", len(pods), ", eld:", eld)
+    }
   }
 }
 
@@ -181,6 +200,16 @@ func TestOrder(t *testing.T) {
       t.Fatal("Output students not in same order as input", i, "\n",
         pm2.Students[i].Stripped, students[i].Stripped)
     }
+  }
+}
+
+func TestAlreadyMade(t *testing.T) {
+  pm2 := initPm()
+  s := pm2.WritePodsToString()
+  pm2 = new(mvhspods.PodManager)
+  pm2.ReadStudentsFromString(s)
+  if !pm2.AlreadyMade() {
+    t.Error("Pods should have already been made")
   }
 }
 

@@ -28,23 +28,17 @@ func PodStats(pd *mvhspods.PodData) *Stats {
 func PodStatsWithTolerance(pd *mvhspods.PodData, errTolerance mvhspods.Percent) *Stats {
   stats := new(Stats)
   numErrs := len(pd.Population()) * len(pd.Pods())
-  index := 0
+
   for _, pod := range pd.Pods() {
-    podPercents := mvhspods.PercentsOf(pod)
-    for field, actualPercent := range pd.Population() {
-      err := mvhspods.Abs(podPercents[field] - actualPercent)
-      index++
-      stats.avgErr += err
-      if err > stats.maxErr {
-        stats.maxErr = err
-      }
-      if err > badErrThreshold {
-        stats.badErrs++
-      }
-      if err > errTolerance {
-        glog.Errorf("Error of %v for field %v exceeds tolerance of %v\npod percent: %v, actual percent: %v\n",
-          err, field, errTolerance, podPercents[field], actualPercent)
-      }
+    podStats := PodStatsOfPod(pod, pd.Population())
+    if podStats.maxErr > errTolerance {
+      glog.Errorf("Max error of %v exceeds tolerance of %v",
+        podStats.maxErr, errTolerance)
+    }
+    stats.avgErr += podStats.avgErr * mvhspods.Percent(len(pd.Population()))
+    stats.badErrs += podStats.badErrs
+    if podStats.maxErr > stats.maxErr {
+      stats.maxErr = podStats.maxErr
     }
   }
 
@@ -53,6 +47,28 @@ func PodStatsWithTolerance(pd *mvhspods.PodData, errTolerance mvhspods.Percent) 
   return stats
 }
 
+func PodStatsOfPod(pod mvhspods.Students, population mvhspods.Percents) *Stats {
+  stats := new(Stats)
+
+  podPercents := mvhspods.PercentsOf(pod)
+  for field, actualPercent := range population {
+    err := mvhspods.Abs(podPercents[field] - actualPercent)
+    stats.avgErr += err
+    if err > stats.maxErr {
+      stats.maxErr = err
+    }
+    if err > badErrThreshold {
+      stats.badErrs++
+    }
+  }
+  stats.avgErr /= mvhspods.Percent(len(population))
+  return stats
+}
+
 func (s *Stats) String() string {
   return fmt.Sprintf("%+v", *s)
+}
+
+func (s *Stats) AvgErr() mvhspods.Percent {
+  return s.avgErr
 }

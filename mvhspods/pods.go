@@ -30,6 +30,7 @@ type PodManager struct {
   // Data for ELD 1/2 students (3/4 are integrated with the other students)
   Eld PodData
   PodData
+  alreadyMade bool
 }
 
 func Abs(p Percent) Percent {
@@ -59,7 +60,8 @@ func (pm *PodManager) readStudents(reader io.Reader, sampleData bool) {
   r := csv.NewReader(bufReader)
   index := 0
   headers, err := r.Read()
-  pm.Headers = append(headers, "PodGroup")
+  pm.Headers = append(headers, "")
+
   glog.FatalIf(err)
 
   for err != io.EOF {
@@ -78,9 +80,20 @@ func (pm *PodManager) readStudents(reader io.Reader, sampleData bool) {
       glog.CheckNe(len(s.Fields), 0, "Read empty student")
     }
   }
+
+  if pm.Headers[len(pm.Headers)-1] == "" { // Already have pods made
+    pm.splitEld()
+    pm.Eld.population = PercentsOf(pm.Eld.Students)
+    pm.population = PercentsOf(pm.Students)
+    pm.alreadyMade = true
+  }
 }
 
-func (pm *PodManager) MakePods(podSize int) {
+func (pm *PodManager) AlreadyMade() bool {
+  return pm.alreadyMade
+}
+
+func (pm *PodManager) splitEld() {
   for i := 0; i < len(pm.Students); i++ {
     student := pm.Students[i]
     if groupMemberships := student.GroupMemberships(); strings.Contains(groupMemberships, EldStr) {
@@ -89,11 +102,21 @@ func (pm *PodManager) MakePods(podSize int) {
       i--
     }
   }
+}
+
+func (pm *PodManager) MakePods(podSize int) {
+  if pm.alreadyMade {
+    return
+  }
+
+  pm.splitEld()
 
   if pm.Eld.Students.Len() > 0 {
     pm.makePods(&pm.Eld.Students, &pm.Eld.pods, &pm.Eld.population, podSize, true)
   }
-  pm.makePods(&pm.Students, &pm.pods, &pm.population, podSize, false)
+  if pm.Students.Len() > 0 {
+    pm.makePods(&pm.Students, &pm.pods, &pm.population, podSize, false)
+  }
 }
 
 func (pm *PodManager) makePods(students *Students, pods *[]Students, population *Percents, podSize int, eld bool) {

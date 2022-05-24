@@ -1,9 +1,8 @@
 package main
 
 import (
-  "encoding/csv"
   "flag"
-  "strings"
+  "fmt"
   "syscall/js"
 
   "mvhspods"
@@ -11,6 +10,9 @@ import (
 
   "github.com/milind-u/glog"
 )
+
+var eldPopulation mvhspods.Percents
+var population mvhspods.Percents
 
 func webMain() js.Func {
   return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
@@ -21,6 +23,8 @@ func webMain() js.Func {
       var pm mvhspods.PodManager
       pm.ReadStudentsFromString(students)
       pm.MakePods(mvhspods.DefaultPodSize)
+      eldPopulation = pm.Eld.Population()
+      population = pm.Population()
       pods = pm.WritePodsToString()
     } else {
       glog.Errorln("Expected 1 arg (csv), but got", len(args))
@@ -29,7 +33,7 @@ func webMain() js.Func {
   })
 }
 
-func webPodPercents() js.Func {
+func webPodError() js.Func {
   return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
     pods := ""
     if len(args) == 1 {
@@ -37,9 +41,15 @@ func webPodPercents() js.Func {
 
       var pm mvhspods.PodManager
       pm.ReadStudentsFromString(pod)
-      b := new(strings.Builder)
-      pm.WritePercents(csv.NewWriter(b), mvhspods.PercentsOf(pm.Students), 0, len(pm.Students[0].Fields))
-      pods = b.String()
+
+      var stats *tests.Stats
+      // The pod is either ELD or other
+      if pm.Eld.Len() > 0 {
+        stats = tests.PodStatsOfPod(pm.Eld.Students, eldPopulation)
+      } else {
+        stats = tests.PodStatsOfPod(pm.Students, population)
+      }
+      return fmt.Sprintf("%v", stats.AvgErr())
     } else {
       glog.Errorln("Expected 1 arg (csv), but got", len(args))
     }
@@ -60,7 +70,7 @@ func main() {
 
   if *web {
     js.Global().Set("makePods", webMain())
-    js.Global().Set("percentsOf", webPodPercents())
+    js.Global().Set("podError", webPodError())
     // Keep the program running
     <-make(chan interface{})
   } else if *studentsToGenerate != 0 {
