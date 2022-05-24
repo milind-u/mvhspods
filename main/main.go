@@ -1,8 +1,10 @@
 package main
 
 import (
+  "encoding/csv"
   "flag"
   "fmt"
+  "strings"
   "syscall/js"
 
   "mvhspods"
@@ -26,6 +28,24 @@ func webMain() js.Func {
       eldPopulation = pm.Eld.Population()
       population = pm.Population()
       pods = pm.WritePodsToString()
+    } else {
+      glog.Errorln("Expected 1 arg (csv), but got", len(args))
+    }
+    return pods
+  })
+}
+
+func webPodPercents() js.Func {
+  return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+    pods := ""
+    if len(args) == 1 {
+      pod := args[0].String()
+
+      var pm mvhspods.PodManager
+      pm.ReadStudentsFromString(pod)
+      b := new(strings.Builder)
+      pm.WritePercents(csv.NewWriter(b), mvhspods.PercentsOf(pm.Students), 0, len(pm.Students[0].Fields))
+      pods = b.String()
     } else {
       glog.Errorln("Expected 1 arg (csv), but got", len(args))
     }
@@ -70,6 +90,7 @@ func main() {
 
   if *web {
     js.Global().Set("makePods", webMain())
+    js.Global().Set("podPercents", webPodPercents())
     js.Global().Set("podError", webPodError())
     // Keep the program running
     <-make(chan interface{})
