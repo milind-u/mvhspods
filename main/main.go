@@ -90,7 +90,7 @@ func main() {
 
   if *web {
     js.Global().Set("makePods", webMain())
-    js.Global().Set("podPercents", webPodPercents())
+    js.Global().Set("percentsOf", webPodPercents())
     js.Global().Set("podError", webPodError())
     // Keep the program running
     <-make(chan interface{})
