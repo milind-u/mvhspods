@@ -157,14 +157,14 @@ func TestPodStats(t *testing.T) {
     // Normal
     {
       maxErr:  0.35,
-      avgErr:  0.021,
-      badErrs: 11,
+      avgErr:  0.028,
+      badErrs: 16,
     },
     // ELD
     {
       maxErr:  0.35,
       avgErr:  0.035,
-      badErrs: 2,
+      badErrs: 3,
     },
   }
 
