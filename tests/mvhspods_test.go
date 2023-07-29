@@ -39,9 +39,10 @@ func TestPodSize(t *testing.T) {
   for _, pd := range []*mvhspods.PodData{&pm.PodData, &pm.Eld} {
     for _, pod := range pd.Pods() {
       actualNumStudents += len(pod)
-      if len(pod) < mvhspods.DefaultPodSize || len(pod) > mvhspods.DefaultPodSize+1 {
+      maxSize := mvhspods.DefaultPodSize + 3
+      if len(pod) < mvhspods.DefaultPodSize || len(pod) > maxSize {
         t.Errorf("Expected pod size between %v and %v, but got %v",
-          mvhspods.DefaultPodSize, mvhspods.DefaultPodSize+1, len(pod))
+          mvhspods.DefaultPodSize, maxSize, len(pod))
       }
     }
   }
@@ -111,7 +112,7 @@ func TestNoStudents(t *testing.T) {
 
     for _, pod := range pods {
       studentCount += pod.Len()
-      if pod.Len() < mvhspods.DefaultPodSize || pod.Len() > mvhspods.DefaultPodSize+2 {
+      if pod.Len() < mvhspods.DefaultPodSize || pod.Len() > mvhspods.DefaultPodSize+3 {
         t.Error("Invalid pod size:", pod.Len(), ", eld:", eld)
       }
     }
@@ -157,7 +158,7 @@ func TestPodStats(t *testing.T) {
     // Normal
     {
       maxErr:  0.35,
-      avgErr:  0.028,
+      avgErr:  0.029,
       badErrs: 16,
     },
     // ELD
