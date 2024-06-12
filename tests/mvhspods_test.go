@@ -204,16 +204,6 @@ func TestOrder(t *testing.T) {
   }
 }
 
-func TestAlreadyMade(t *testing.T) {
-  pm2 := initPm()
-  s := pm2.WritePodsToString()
-  pm2 = new(mvhspods.PodManager)
-  pm2.ReadStudentsFromString(s)
-  if !pm2.AlreadyMade() {
-    t.Error("Pods should have already been made")
-  }
-}
-
 func initPm() *mvhspods.PodManager {
   students := GenerateStudents(numStudents)
   mvhspods.WriteStudents("students.csv", Headers, students)

@@ -30,7 +30,6 @@ type PodManager struct {
   // Data for ELD 1/2 students (3/4 are integrated with the other students)
   Eld PodData
   PodData
-  alreadyMade bool
 }
 
 func Abs(p Percent) Percent {
@@ -85,12 +84,7 @@ func (pm *PodManager) readStudents(reader io.Reader, sampleData bool) {
     pm.splitEld()
     pm.Eld.population = PercentsOf(pm.Eld.Students)
     pm.population = PercentsOf(pm.Students)
-    pm.alreadyMade = true
   }
-}
-
-func (pm *PodManager) AlreadyMade() bool {
-  return pm.alreadyMade
 }
 
 func (pm *PodManager) splitEld() {
@@ -105,10 +99,6 @@ func (pm *PodManager) splitEld() {
 }
 
 func (pm *PodManager) MakePods(podSize int) {
-  if pm.alreadyMade {
-    return
-  }
-
   pm.splitEld()
 
   if pm.Eld.Students.Len() > 0 {
