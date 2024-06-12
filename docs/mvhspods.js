@@ -5,6 +5,8 @@ function runGo() {
 
 runGo();
 
+const POD_SIZE = 11;
+
 function doMakePods() {
   const files = document.getElementById("students").files;
   if (files.length !== 1) {
@@ -13,7 +15,7 @@ function doMakePods() {
 
   const reader = new FileReader();
   reader.onload = e => {
-    const pods = makePods(e.target.result);
+    const pods = makePods(e.target.result, POD_SIZE);
 
     // Write the pods as a csv to disk
     const elem = document.createElement('a');

@@ -13,7 +13,7 @@ import (
   "github.com/milind-u/glog"
 )
 
-const DefaultPodSize = 11
+const DefaultPodSize = 12
 
 type Percent float32
 
