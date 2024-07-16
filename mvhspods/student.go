@@ -29,6 +29,7 @@ const advEldStr = "eld3/4"
 type Student struct {
 	Fields              []string
 	Stripped            []string
+	indexMap            []int
 	groupMemberships    []string
 	groupMembershipsSet bool
 }
@@ -60,11 +61,11 @@ func (s *Student) weightedFields() chan Field {
 	for i := 0; i < len(weightedFields); i++ {
 		if i == groupMemberships.Index && s.groupMembershipsSet && s.GroupMemberships() != "" {
 			for _, group := range s.groupMemberships {
-				c <- Field{i, group}
+				c <- Field{s.indexMap[i], group}
 			}
 		} else {
 			if i < len(s.Stripped) && s.Stripped[i] != "" {
-				c <- Field{i, s.Stripped[i]}
+				c <- Field{s.indexMap[i], s.Stripped[i]}
 			}
 		}
 	}
@@ -89,11 +90,13 @@ var eldRegexp2 = regexp.MustCompile(`eld(3|4)`)
 
 func (s *Student) Strip(headers []string) {
 	s.Stripped = make([]string, len(weightedFields))
+	s.indexMap = make([]int, len(weightedFields))
 	// Remove whitespace from Fields, and make everything lowercase
 	// in case there were capitalization/spacing inconsistencies.
 	for i, field := range s.Fields {
 		if index, ok := weightedFields[headers[i]]; ok {
 			s.Stripped[index] = strings.ToLower(strings.ReplaceAll(field, " ", ""))
+			s.indexMap[index] = i
 		}
 	}
 
