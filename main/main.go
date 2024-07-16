@@ -23,9 +23,9 @@ func webMain() js.Func {
 		podSize := mvhspods.DefaultPodSize
 		if len(args) == 2 {
 			podSize = args[1].Int()
-      if podSize <= 0 {
-        glog.Fatalln("Pod size", podSize, "is not positive integer")
-      }
+			if podSize <= 0 {
+				glog.Fatalln("Pod size", podSize, "is not positive integer")
+			}
 		} else if len(args) > 2 {
 			glog.Fatalln("Expected 1 or 2 args (csv and optionally pod size), but got", len(args))
 		}
