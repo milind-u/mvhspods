@@ -125,15 +125,15 @@ func (pm *PodManager) makePods(students *Students, pods *[]Students, population 
 		podOffset = len(pm.Eld.pods)
 	}
 
-	for i := 0; i < numPods; i++ {
-		podPercents := make(Percents)
+	podPercents := make([]Percents, numPods)
 
-		for j := 0; j < podSize && len(*students) != 0; j++ {
+	for j := 0; j < podSize && len(*students) != 0; j++ {
+		for i := 0; i < numPods; i++ {
 			maxWeight := minWeight
 			var maxStudent Student
 			maxIndex := 0
 			for k, student := range *students {
-				if weight := student.Weight(*population, podPercents); weight > maxWeight {
+				if weight := student.Weight(*population, podPercents[i]); weight > maxWeight {
 					maxStudent = student
 					maxIndex = k
 					maxWeight = weight
@@ -141,7 +141,7 @@ func (pm *PodManager) makePods(students *Students, pods *[]Students, population 
 				}
 			}
 			pm.addToPod(maxStudent, maxIndex, i, podOffset, &(*pods)[i], &addedStudents, students)
-			podPercents = PercentsOf((*pods)[i])
+			podPercents[i] = PercentsOf((*pods)[i])
 		}
 	}
 
